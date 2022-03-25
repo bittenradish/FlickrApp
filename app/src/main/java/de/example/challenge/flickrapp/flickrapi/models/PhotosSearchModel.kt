@@ -1,4 +1,4 @@
 package de.example.challenge.flickrapp.flickrapi.models
 
-class PhotosSearchModel(var photos: PhotosDataModel) {
+data class PhotosSearchModel(var photos: PhotosDataModel) {
 }
