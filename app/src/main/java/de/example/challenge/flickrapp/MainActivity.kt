@@ -1,17 +1,13 @@
 package de.example.challenge.flickrapp
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
-import android.widget.Toast
-import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.LiveData
+import androidx.appcompat.app.AppCompatActivity
 import de.example.challenge.flickrapp.fragments.FlowFragment
 
 class MainActivity : AppCompatActivity() {
 
-    private var flowFragment: FlowFragment? = null
+    private lateinit var flowFragment: FlowFragment
     private val savedFlowFragmentKey = "SAVED_FLOW_FRAGMENT_KEY"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,25 +16,25 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             flowFragment = FlowFragment()
             supportFragmentManager.beginTransaction()
-                .add(R.id.mainFrameLayout, flowFragment!!)
+                .add(R.id.mainFrameLayout, flowFragment)
                 .commit()
         } else {
             flowFragment =
                 supportFragmentManager.getFragment(
                     savedInstanceState,
                     savedFlowFragmentKey
-                ) as FlowFragment?
+                ) as FlowFragment
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        flowFragment?.let { supportFragmentManager.putFragment(outState, savedFlowFragmentKey, it) }
+        supportFragmentManager.putFragment(outState, savedFlowFragmentKey, flowFragment)
     }
 
     override fun onBackPressed() {
         Log.d("TAG", "flow " + flowFragment)
-        if (flowFragment?.onBackPressed() == true) {
+        if (flowFragment.onBackPressed() == true) {
             super.onBackPressed()
         }
     }

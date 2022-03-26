@@ -12,15 +12,15 @@ class App : Application() {
         fun getAppInstance(): App {
             return instance
         }
-
-        fun getDataBase(): DataBase{
-            return dataBase
-        }
     }
 
     override fun onCreate() {
         super.onCreate()
         instance = this
         dataBase = Room.databaseBuilder(this, DataBase::class.java, "searchingDataBase").build()
+    }
+
+    fun getDataBase(): DataBase {
+        return dataBase
     }
 }
