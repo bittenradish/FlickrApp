@@ -6,13 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.adapter.AdapterItem
 import de.example.challenge.flickrapp.adapter.DataAdapter
 import de.example.challenge.flickrapp.adapter.OnItemClickedListener
-import de.example.challenge.flickrapp.application.App
 
 class HistoryFragment : Fragment() {
 
@@ -22,9 +22,9 @@ class HistoryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_history, container, false)
-        historyViewModel = HistoryViewModel(App.getAppInstance())
+        historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
         val historyAdapter: DataAdapter = DataAdapter(listOf<AdapterItem>(), OnItemClickedListener {
-            //TODO: Add action
+            //TODO: add action -> { open searchFragment and start search}
         })
         val historyRecyclerView: RecyclerView = view.findViewById(R.id.historyRecyclerView)
         historyRecyclerView.layoutManager =

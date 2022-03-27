@@ -18,7 +18,13 @@ class DataAdapter(
         val layoutInflater = LayoutInflater.from(viewGroup.context)
         return when (viewType) {
             1 -> HistoryViewHolder(layoutInflater.inflate(R.layout.history_item, viewGroup, false))
-            //TODO: write option for search ViewHolder
+            2 -> PhotoViewHolder(
+                layoutInflater.inflate(
+                    (R.layout.photo_search_item),
+                    viewGroup,
+                    false
+                )
+            )
             else -> HistoryViewHolder(
                 layoutInflater.inflate(
                     R.layout.photo_search_item,

@@ -19,17 +19,17 @@ interface FlickrApi {
          * https://www.flickr.com/services/api/misc.urls.html
          */
         //TODO: write correct url
-        private val PHOTOS_BASE_URL: String ="";
+        private val PHOTOS_BASE_URL: String = "";
 
-        fun createForSearch() : FlickrApi {
+        fun createForSearch(): FlickrApi {
             return create(SEARCH_BASE_URL)
         }
 
-        fun createForPhoto() : FlickrApi{
+        fun createForPhoto(): FlickrApi {
             return create(PHOTOS_BASE_URL)
         }
 
-        private fun create(url: String) : FlickrApi {
+        private fun create(url: String): FlickrApi {
             val retrofit = Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(url)
@@ -39,14 +39,17 @@ interface FlickrApi {
     }
 
     // photos searching request
+    //TODO: delete media type
     @GET("?method=flickr.photos.search")
-    fun searchPhoto(@Query("api_key")apiKey: String,
-                    @Query("text") text: String,
-                    @Query("page") page: Int = 1,
-                    @Query("format") format: String = "json",
-                    @Query("nojsoncallback") nojsoncallback: Int = 1,
-                    @Query("safe_search") safe_search: Int = 1,
-                    @Query("media") media: String = "photos") : Call<PhotosSearchModel>
+    fun searchPhoto(
+        @Query("api_key") apiKey: String,
+        @Query("text") text: String,
+        @Query("page") page: Int = 1,
+        @Query("format") format: String = "json",
+        @Query("nojsoncallback") nojsoncallback: Int = 1,
+        @Query("safe_search") safe_search: Int = 1,
+        @Query("media") media: String = "photos"
+    ): Call<PhotosSearchModel>
 
 //    @GET("{serverId}/")
 //    fun getPhoto()
