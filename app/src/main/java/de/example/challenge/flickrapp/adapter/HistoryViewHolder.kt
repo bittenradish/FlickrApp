@@ -17,7 +17,7 @@ class HistoryViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) 
         savedRequestTextView.text = historyItem.request
 
         itemView.setOnClickListener {
-            historyItemAction.onItemClicked()
+            historyItemAction.onItemClicked(historyItem.request)
         }
         deleteRequestButton.setOnClickListener {
             historyItemAction.deleteButtonClicked(historyItem.request)

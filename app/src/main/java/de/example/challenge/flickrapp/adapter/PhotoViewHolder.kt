@@ -12,7 +12,8 @@ class PhotoViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) {
     private var itemImageView: ImageView = itemView.findViewById(R.id.itemImageView)
     private var titleTextView: TextView = itemView.findViewById(R.id.itemTitleTextView)
 
-    override fun bind(item: AdapterItem, onClickedAction: OnItemClickedListener) {
+    override fun bind(@NonNull item: AdapterItem, @NonNull onClickedAction: OnItemClickedListener) {
+        val onPhotoItemListener: OnPhotoItemListener = onClickedAction as OnPhotoItemListener
         val photoItem: PhotoModel = item as PhotoModel
         titleTextView.text = photoItem.title
         Glide
@@ -22,7 +23,8 @@ class PhotoViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) {
             .into(itemImageView)
 
         itemView.setOnClickListener {
-            onClickedAction.onItemClicked()
+            //TODO: implement and get correct position
+            onPhotoItemListener.onItemClicked(1)
         }
     }
 }

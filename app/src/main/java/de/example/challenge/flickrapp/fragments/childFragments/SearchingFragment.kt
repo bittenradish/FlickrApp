@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.adapter.AdapterItem
 import de.example.challenge.flickrapp.adapter.DataAdapter
-import de.example.challenge.flickrapp.adapter.OnItemClickedListener
+import de.example.challenge.flickrapp.adapter.OnPhotoItemListener
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.database.RequestHistoryModel
 import de.example.challenge.flickrapp.executors.AppExecutors
@@ -28,14 +28,16 @@ class SearchingFragment : Fragment() {
     private lateinit var searchViewModel: SearchViewModel
 
     //TODO: replace loading into VM and make it thread save
-    private var loading = false
+    private var loadingMore = false
+    private var searchingPhoto = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_searching, container, false)
-        searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
+        searchViewModel =
+            ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
 
         val photosRecyclerView: RecyclerView = view.findViewById(R.id.photosRecyclerView)
         photosRecyclerView.layoutManager = GridLayoutManager(
@@ -45,7 +47,7 @@ class SearchingFragment : Fragment() {
                 else -> 2
             }
         )
-        val photosAdapter: DataAdapter = DataAdapter(listOf<AdapterItem>(), OnItemClickedListener {
+        val photosAdapter: DataAdapter = DataAdapter(listOf<AdapterItem>(), OnPhotoItemListener {
             //TODO: Open fullscreen fragment
         })
         photosRecyclerView.adapter = photosAdapter
@@ -54,17 +56,31 @@ class SearchingFragment : Fragment() {
             photosAdapter.notifyDataChanged(it)
             Log.d("SIZE", "AdapterSize: " + photosAdapter.itemCount)
         })
-        searchViewModel.getPhotoLoadingLiveData().observe(viewLifecycleOwner, Observer {
-            loading = it
+        searchViewModel.getPhotoLoadingMoreLiveData().observe(viewLifecycleOwner, Observer {
+            loadingMore = it
+        })
+        searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
+            searchingPhoto = it
+            if (searchingPhoto) {
+                //TODO: show progressbar
+            } else {
+                //TODO: hide progressbar
+                //TODO enable search button
+            }
         })
         photosRecyclerView.addOnScrollListener(endlessScrolling)
         val searchEditText: EditText = view.findViewById(R.id.searchEditText)
+        searchViewModel.getRequestStringLiveData().observe(viewLifecycleOwner, Observer {
+            searchEditText.setText(it)
+        })
         val searchButton: Button = view.findViewById(R.id.searchButton)
         searchButton.setOnClickListener(View.OnClickListener {
             if (!searchEditText.text.isEmpty()) {
+                //TODO disable editText
+                //TODO disable search button
                 //TODO add to db and search
                 searchViewModel.searchFor(searchEditText.text.toString())
-
+                searchEditText.clearFocus()
                 AppExecutors.diskIO().execute(Runnable {
                     try {
                         App.getAppInstance().getDataBase().requestDao()
@@ -88,7 +104,7 @@ class SearchingFragment : Fragment() {
                     val totalItemsCount = recyclerView.layoutManager?.itemCount
                     val firstVisibleItemPosition =
                         (recyclerView.layoutManager as GridLayoutManager).findFirstVisibleItemPosition()
-                    if (!loading) {
+                    if (!searchingPhoto && !loadingMore) {
                         //TODO: find the best formula for searching
                         Log.d(
                             "Position",

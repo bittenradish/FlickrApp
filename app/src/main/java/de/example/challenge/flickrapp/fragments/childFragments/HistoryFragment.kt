@@ -18,20 +18,23 @@ import de.example.challenge.flickrapp.adapter.OnHistoryItemListener
 class HistoryFragment : Fragment() {
 
     private lateinit var historyViewModel: HistoryViewModel
+    private lateinit var searchViewModel: SearchViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_history, container, false)
         historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
+        searchViewModel =
+            ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
         val historyAdapter: DataAdapter =
             DataAdapter(listOf<AdapterItem>(), object : OnHistoryItemListener {
-                override fun onItemClicked() {
+                override fun onItemClicked(requestText: String) {
                     //TODO: add action -> { open searchFragment and start search}
+                    searchViewModel.searchFor(requestText, true)
                 }
 
                 override fun deleteButtonClicked(requestText: String) {
-                    //TODO: add behavior for deleting request from history
                     historyViewModel.deleteRequest(requestText)
                 }
             })
