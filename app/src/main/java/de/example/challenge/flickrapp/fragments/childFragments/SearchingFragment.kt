@@ -3,6 +3,7 @@ package de.example.challenge.flickrapp.fragments.childFragments
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +27,9 @@ class SearchingFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
 
+    //TODO: replace loading into VM and make it thread save
+    private var loading = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -46,8 +50,14 @@ class SearchingFragment : Fragment() {
         })
         photosRecyclerView.adapter = photosAdapter
         searchViewModel.getPhotosLiveData().observe(viewLifecycleOwner, Observer {
+            //TODO: improve Adapter update func(don't load all again)
             photosAdapter.notifyDataChanged(it)
+            Log.d("SIZE", "AdapterSize: " + photosAdapter.itemCount)
         })
+        searchViewModel.getPhotoLoadingLiveData().observe(viewLifecycleOwner, Observer {
+            loading = it
+        })
+        photosRecyclerView.addOnScrollListener(endlessScrolling)
         val searchEditText: EditText = view.findViewById(R.id.searchEditText)
         val searchButton: Button = view.findViewById(R.id.searchButton)
         searchButton.setOnClickListener(View.OnClickListener {
@@ -69,4 +79,26 @@ class SearchingFragment : Fragment() {
         })
         return view
     }
+
+    private val endlessScrolling: RecyclerView.OnScrollListener =
+        object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0) {
+                    val totalItemsCount = recyclerView.layoutManager?.itemCount
+                    val firstVisibleItemPosition =
+                        (recyclerView.layoutManager as GridLayoutManager).findFirstVisibleItemPosition()
+                    if (!loading) {
+                        //TODO: find the best formula for searching
+                        Log.d(
+                            "Position",
+                            "Position is: " + firstVisibleItemPosition + " total is: " + totalItemsCount
+                        )
+                        if (firstVisibleItemPosition >= totalItemsCount!! * 0.85) {
+                            searchViewModel.loadMore()
+                        }
+                    }
+                }
+            }
+        }
 }

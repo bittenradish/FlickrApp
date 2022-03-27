@@ -48,7 +48,7 @@ interface FlickrApi {
         @Query("format") format: String = "json",
         @Query("nojsoncallback") nojsoncallback: Int = 1,
         @Query("safe_search") safe_search: Int = 1,
-        @Query("media") media: String = "photos"
+        @Query("media") media: String = "all"
     ): Call<PhotosSearchModel>
 
 //    @GET("{serverId}/")

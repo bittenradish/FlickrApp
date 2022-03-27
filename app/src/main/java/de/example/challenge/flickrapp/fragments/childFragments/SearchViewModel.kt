@@ -16,7 +16,10 @@ import retrofit2.Response
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
     private var photosLiveData: MutableLiveData<List<PhotoModel>>? = null
     private var photoSearchModelLiveData: MutableLiveData<PhotosSearchModel> = MutableLiveData()
+    private var photoLoadingLiveData: MutableLiveData<Boolean> = MutableLiveData(false)
     private val flickrApiService = FlickrApi.createForSearch()
+    private var requestString: String? = null
+    private var currentPage: Int = 1
 
     fun getPhotosLiveData(): LiveData<List<PhotoModel>> {
         if (photosLiveData == null) {
@@ -26,27 +29,52 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         return photosLiveData!!
     }
 
+    fun getPhotoLoadingLiveData(): LiveData<Boolean> {
+        return photoLoadingLiveData
+    }
+
     fun searchFor(requestText: String) {
+        photoLoadingLiveData.postValue(true)
+        currentPage = 1
+        requestString = requestText
         searchPhotos(requestText = requestText)
     }
 
     fun loadMore() {
         //TODO: implement loading next pages for endless scrolling
+        photoLoadingLiveData.postValue(true)
+        currentPage++
+        requestString?.let { it1 ->
+            searchPhotos(
+                currentPage,
+                it1
+            )
+        }
     }
 
     private fun searchPhotos(page: Int = 1, requestText: String) {
-        Log.d("TAG", "Starting searching")
+        Log.d("SIZE", "Starting search for page: " + page)
         flickrApiService.searchPhoto(page = page, text = requestText, apiKey = App.API_KEY).apply {
             enqueue(object : Callback<PhotosSearchModel> {
                 override fun onResponse(
                     call: Call<PhotosSearchModel>,
                     response: Response<PhotosSearchModel>
                 ) {
+                    photoLoadingLiveData.postValue(false)
                     Log.d("TAG", "is successful: " + response.isSuccessful)
                     if (response.isSuccessful) {
-                        photoSearchModelLiveData.postValue(response.body())
+                        if (page != 1) {
+                            val oldList: MutableList<PhotoModel> =
+                                (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
+                            photoSearchModelLiveData.postValue(response.body())
+                            response.body()?.photos?.photo?.let { oldList.addAll(it) }
+                            Log.d("SIZE", "List Size: " + oldList.size)
+                            photosLiveData?.postValue(oldList)
+                        } else {
+                            photoSearchModelLiveData.postValue(response.body())
+                            photosLiveData?.postValue(response.body()?.photos?.photo)
+                        }
                         //TODO add behavior for empty list
-                        photosLiveData?.postValue(response.body()?.photos?.photo)
                     } else {
                         //TODO implement error management
                     }
@@ -54,6 +82,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
                 override fun onFailure(p0: Call<PhotosSearchModel>, p1: Throwable) {
                     Log.d("TAG", "onFailure: " + p1.cause)
+                    photoLoadingLiveData.postValue(false)
                 }
             })
         }

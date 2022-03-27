@@ -9,13 +9,8 @@ import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.flickrapi.models.PhotoModel
 
 class PhotoViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) {
-    private lateinit var itemImageView: ImageView
-    private lateinit var titleTextView: TextView
-
-    init {
-        itemImageView = itemView.findViewById(R.id.itemImageView)
-        titleTextView = itemView.findViewById(R.id.itemTitleTextView)
-    }
+    private var itemImageView: ImageView = itemView.findViewById(R.id.itemImageView)
+    private var titleTextView: TextView = itemView.findViewById(R.id.itemTitleTextView)
 
     override fun bind(item: AdapterItem, onClickedAction: OnItemClickedListener) {
         val photoItem: PhotoModel = item as PhotoModel

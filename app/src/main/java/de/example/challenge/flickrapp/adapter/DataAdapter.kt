@@ -27,7 +27,7 @@ class DataAdapter(
             )
             else -> HistoryViewHolder(
                 layoutInflater.inflate(
-                    R.layout.photo_search_item,
+                    R.layout.history_item,
                     viewGroup,
                     false
                 )

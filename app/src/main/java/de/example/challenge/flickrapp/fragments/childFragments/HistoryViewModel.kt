@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.database.RequestDao
 import de.example.challenge.flickrapp.database.RequestHistoryModel
+import de.example.challenge.flickrapp.executors.AppExecutors
 
 class HistoryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -17,5 +18,17 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
             requestHistoryLiveData = requestDao.getAll()
         }
         return requestHistoryLiveData as LiveData<List<RequestHistoryModel>>
+    }
+
+    fun deleteRequest(requestText: String) {
+        AppExecutors.diskIO().execute(Runnable {
+            requestDao.delete(requestText)
+        })
+    }
+
+    fun clearRequestHistory() {
+        AppExecutors.diskIO().execute(Runnable {
+            requestDao.clearDB()
+        })
     }
 }
