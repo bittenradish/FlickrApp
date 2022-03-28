@@ -88,8 +88,9 @@ class FlowFragment : Fragment(), IOnBackPressed {
     }
 
     override fun onBackPressed(): Boolean {
+        val bool = fragmentOnTheScreen == ChildFragment.SEARCHING_FRAGMENT
         replaceSearchingFragment()
-        return fragmentOnTheScreen == ChildFragment.SEARCHING_FRAGMENT
+        return bool
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

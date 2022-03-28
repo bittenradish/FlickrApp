@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         Log.d("TAG", "flow " + flowFragment)
-        if (flowFragment.onBackPressed() == true) {
+        if (flowFragment.onBackPressed()) {
             super.onBackPressed()
         }
     }
