@@ -1,22 +1,33 @@
 package de.example.challenge.flickrapp.fragments.childFragments
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.flickrapi.FlickrApi
+import de.example.challenge.flickrapp.flickrapi.ResponseCode
+import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.apiErrorCodeHandling
+import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.errorChecker
+import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.responseErrorCodeHandling
 import de.example.challenge.flickrapp.flickrapi.models.PhotoModel
 import de.example.challenge.flickrapp.flickrapi.models.PhotosSearchModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
     private var photosLiveData: MutableLiveData<List<PhotoModel>>? = null
     private var photoLoadingLiveData: MutableLiveData<Boolean> = MutableLiveData(false)
     private var photoSearchingLiveData: MutableLiveData<Boolean> = MutableLiveData(false)
+    private var responseCodeLiveData: MutableLiveData<ResponseCode> =
+        MutableLiveData(ResponseCode.RESPONSE_OK)
     private val flickrApiService = FlickrApi.createForSearch()
     private var requestStringLiveData: MutableLiveData<String> = MutableLiveData()
     private var currentPage: Int = 1
@@ -41,14 +52,20 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         return requestStringLiveData
     }
 
-    fun searchFor(requestText: String, fromAnotherFragment: Boolean = false) {
+    fun getResponseCodeLiveData(): LiveData<ResponseCode> {
+        return responseCodeLiveData
+    }
+
+    fun observerGotTheMessage() {
+        responseCodeLiveData.postValue(ResponseCode.RESPONSE_OK)
+    }
+
+    fun searchFor(requestText: String) {
         photoLoadingLiveData.postValue(true)
         photoSearchingLiveData.postValue(true)
         photosLiveData?.postValue(listOf<PhotoModel>())
         currentPage = 1
-        if (fromAnotherFragment) {
-            requestStringLiveData.postValue(requestText)
-        }
+        requestStringLiveData.postValue(requestText)
         searchPhotos(requestText = requestText)
     }
 
@@ -69,39 +86,72 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun searchPhotos(page: Int = 1, requestText: String) {
         Log.d("SIZE", "Starting search for: " + requestText + " page: " + page)
-        flickrApiService.searchPhoto(page = page, text = requestText, apiKey = App.API_KEY).apply {
-            enqueue(object : Callback<PhotosSearchModel> {
-                override fun onResponse(
-                    call: Call<PhotosSearchModel>,
-                    response: Response<PhotosSearchModel>
-                ) {
-                    photoLoadingLiveData.postValue(false)
-                    photoSearchingLiveData.postValue(false)
-                    Log.d("TAG", "is successful: " + response.isSuccessful)
-                    if (response.isSuccessful) {
-                        if (page != 1) {
-                            val oldList: MutableList<PhotoModel> =
-                                (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
-                            response.body()?.photos?.photo?.let { oldList.addAll(it) }
-                            Log.d("SIZE", "List Size: " + oldList.size)
-                            photosLiveData?.postValue(oldList)
+        flickrApiService.searchPhoto(
+            page = page,
+            text = requestText,
+            apiKey = getApplication<App>().resources.getString(R.string.API_KEY)
+        )
+            .apply {
+                enqueue(object : Callback<PhotosSearchModel> {
+                    override fun onResponse(
+                        call: Call<PhotosSearchModel>,
+                        response: Response<PhotosSearchModel>
+                    ) {
+                        photoLoadingLiveData.postValue(false)
+                        photoSearchingLiveData.postValue(false)
+                        if (response.isSuccessful) {
+                            if (response.body()?.stat.equals("ok")) {
+                                //TODO: implement nothing found
+                                //TODO: send response okay
+                                if (page != 1) {
+                                    val oldList: MutableList<PhotoModel> =
+                                        (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
+                                    response.body()?.photos?.photo?.let { oldList.addAll(it) }
+                                    photosLiveData?.postValue(oldList)
+                                } else {
+                                    photosLiveData?.postValue(response.body()?.photos?.photo)
+                                }
+                            } else if (response.body()?.stat.equals("fail")) {
+                                responseCodeLiveData.postValue(apiErrorCodeHandling(response.body()!!.code))
+                            } else {
+                                responseCodeLiveData.postValue(ResponseCode.UNKNOWN_EXCEPTION)
+                            }
+                            Log.d("Error", "Stat is: " + response.body()?.stat)
                         } else {
-                            photosLiveData?.postValue(response.body()?.photos?.photo)
-                            Log.d("SIZE", "photosLiveData is null: " + photosLiveData)
-                            Log.d("SIZE", "new list Size: " + photosLiveData?.value?.size)
+                            responseCodeLiveData.postValue(responseErrorCodeHandling(response.code()))
                         }
-                        //TODO add behavior for empty list
-                    } else {
-                        //TODO implement error management
                     }
-                }
 
-                override fun onFailure(p0: Call<PhotosSearchModel>, p1: Throwable) {
-                    Log.d("TAG", "onFailure: " + p1.cause)
-                    photoLoadingLiveData.postValue(false)
-                    photoSearchingLiveData.postValue(false)
-                }
-            })
+                    override fun onFailure(call: Call<PhotosSearchModel>, throwable: Throwable) {
+                        photoLoadingLiveData.postValue(false)
+                        photoSearchingLiveData.postValue(false)
+                        responseCodeLiveData.postValue(
+                            if (isInternetAvailable(getApplication<App>().applicationContext)) {
+                                errorChecker(call, throwable)
+                            } else {
+                                ResponseCode.NO_NETWORK_CONNECTION
+                            }
+                        )
+                    }
+                })
+            }
+    }
+
+    private fun isInternetAvailable(context: Context): Boolean {
+        var result = false
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val networkCapabilities = connectivityManager.activeNetwork ?: return false
+        val actNw =
+            connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+        result = when {
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
         }
+
+        return result
     }
 }

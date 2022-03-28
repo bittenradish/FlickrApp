@@ -1,5 +1,6 @@
 package de.example.challenge.flickrapp.fragments.childFragments
 
+import android.app.AlertDialog
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
@@ -21,13 +22,15 @@ import de.example.challenge.flickrapp.adapter.DataAdapter
 import de.example.challenge.flickrapp.adapter.OnPhotoItemListener
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.database.RequestHistoryModel
+import de.example.challenge.flickrapp.dialogs.ShowDialogs
 import de.example.challenge.flickrapp.executors.AppExecutors
+import de.example.challenge.flickrapp.flickrapi.ResponseCode
 
 class SearchingFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
+    private var alertDialog: AlertDialog? = null
 
-    //TODO: replace loading into VM and make it thread save
     private var loadingMore = false
     private var searchingPhoto = false
 
@@ -35,10 +38,13 @@ class SearchingFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        //TODO: Network connectivity
         val view: View = inflater.inflate(R.layout.fragment_searching, container, false)
         searchViewModel =
             ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
-
+        searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
+            showErrorMessageDialog(it)
+        })
         val photosRecyclerView: RecyclerView = view.findViewById(R.id.photosRecyclerView)
         photosRecyclerView.layoutManager = GridLayoutManager(
             context, when (resources.configuration.orientation) {
@@ -110,11 +116,41 @@ class SearchingFragment : Fragment() {
                             "Position",
                             "Position is: " + firstVisibleItemPosition + " total is: " + totalItemsCount
                         )
-                        if (firstVisibleItemPosition >= totalItemsCount!! * 0.85) {
+                        if (firstVisibleItemPosition >= totalItemsCount!! * 0.75) {
                             searchViewModel.loadMore()
                         }
                     }
                 }
             }
         }
+
+    private fun showErrorMessageDialog(code: ResponseCode) {
+        if (code == ResponseCode.RESPONSE_OK) {
+            return
+        }
+        //TODO: Implement all errors (Text of errors needed)
+        context?.let {
+            alertDialog = ShowDialogs.showTempAlertDialog(
+                it, when (code) {
+                    ResponseCode.API_UNAVAILABLE -> it.getString(R.string.api_unavailable_message)
+                    ResponseCode.INVALID_KEY -> it.getString(R.string.invalid_api_key_message)
+                    ResponseCode.SERVICE_UNAVAILABLE -> it.getString(R.string.service_unavailable_message)
+                    ResponseCode.OPERATION_FAILED -> it.getString(R.string.operation_failed_message)
+                    ResponseCode.BAD_URL -> it.getString(R.string.bad_url_message)
+                    ResponseCode.SERVER_UNAVAILABLE -> it.getString(R.string.server_unavailable_message)
+                    ResponseCode.BAD_REQUEST -> it.getString(R.string.bad_request_message)
+                    ResponseCode.URL_CHANGED -> it.getString(R.string.url_changed_message)
+                    ResponseCode.METHOD_NOT_FOUND -> it.getString(R.string.method_not_found)
+                    ResponseCode.NO_NETWORK_CONNECTION -> it.getString(R.string.no_internet_connection)
+                    else -> it.getString(R.string.unknown_error_message)
+                }, "Error"
+            )
+        }
+        searchViewModel.observerGotTheMessage()
+    }
+
+    override fun onDestroyView() {
+        alertDialog?.dismiss()
+        super.onDestroyView()
+    }
 }
