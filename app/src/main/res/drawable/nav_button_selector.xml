@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res/de.example.challenge.flickrapp">
+    xmlns:app="http://schemas.android.com/apk/res-auto  ">
     <item app:selected_state="true" android:drawable="@drawable/ic_selected_button_background"/>
     <item app:selected_state="false" android:drawable="@color/blue_flickr"/>
 </selector>
