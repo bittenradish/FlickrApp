@@ -1,7 +1,6 @@
 package de.example.challenge.flickrapp
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import de.example.challenge.flickrapp.fragments.FlowFragment
 
@@ -33,7 +32,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        Log.d("TAG", "flow " + flowFragment)
         if (flowFragment.onBackPressed()) {
             super.onBackPressed()
         }

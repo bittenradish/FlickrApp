@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -70,7 +69,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun loadMore() {
-        //TODO: implement loading next pages for endless scrolling
         photoLoadingLiveData.postValue(true)
         currentPage++
         requestStringLiveData.value.let { it1 ->
@@ -84,7 +82,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun searchPhotos(page: Int = 1, requestText: String) {
-        Log.d("SIZE", "Starting search for: " + requestText + " page: " + page)
         flickrApiService.searchPhoto(
             page = page,
             text = requestText,
@@ -100,8 +97,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                         photoSearchingLiveData.postValue(false)
                         if (response.isSuccessful) {
                             if (response.body()?.stat.equals("ok")) {
-                                //TODO: implement nothing found
-                                //TODO: send response okay
                                 if (page != 1) {
                                     val oldList: MutableList<PhotoModel> =
                                         (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
@@ -109,13 +104,15 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                                     photosLiveData?.postValue(oldList)
                                 } else {
                                     photosLiveData?.postValue(response.body()?.photos?.photo)
+                                    if (response.body()?.photos?.photo?.size == 0) {
+                                        responseCodeLiveData.postValue(ResponseCode.NOTHING_FOUND)
+                                    }
                                 }
                             } else if (response.body()?.stat.equals("fail")) {
                                 responseCodeLiveData.postValue(apiErrorCodeHandling(response.body()!!.code))
                             } else {
                                 responseCodeLiveData.postValue(ResponseCode.UNKNOWN_EXCEPTION)
                             }
-                            Log.d("Error", "Stat is: " + response.body()?.stat)
                         } else {
                             responseCodeLiveData.postValue(responseErrorCodeHandling(response.code()))
                         }

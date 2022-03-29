@@ -35,7 +35,6 @@ class FlowFragment : Fragment(), IOnBackPressed {
 
         searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
         searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
-            //TODO: Delete all logs
             if (it) {
                 replaceSearchingFragment()
             }
@@ -79,14 +78,14 @@ class FlowFragment : Fragment(), IOnBackPressed {
         }
     }
 
-    private fun setFragmentOnScreenFlag(fragment: ChildFragment){
+    private fun setFragmentOnScreenFlag(fragment: ChildFragment) {
         fragmentOnTheScreen = fragment
-        when(fragmentOnTheScreen){
+        when (fragmentOnTheScreen) {
             ChildFragment.HISTORY_FRAGMENT -> {
                 historyButton.setSelectedState(true)
                 searchButton.setSelectedState(false)
             }
-            else ->{
+            else -> {
                 historyButton.setSelectedState(false)
                 searchButton.setSelectedState(true)
             }

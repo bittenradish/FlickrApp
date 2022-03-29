@@ -30,7 +30,6 @@ class HistoryFragment : Fragment() {
         val historyAdapter: DataAdapter =
             DataAdapter(listOf<AdapterItem>(), object : OnHistoryItemListener {
                 override fun onItemClicked(requestText: String) {
-                    //TODO: add action -> { open searchFragment and start search}
                     searchViewModel.searchFor(requestText)
                 }
 

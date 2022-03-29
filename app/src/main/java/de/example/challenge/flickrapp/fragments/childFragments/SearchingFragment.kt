@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -83,10 +82,6 @@ class SearchingFragment : Fragment() {
                         (recyclerView.layoutManager as GridLayoutManager).findFirstVisibleItemPosition()
                     if (!searchingPhoto && !loadingMore) {
                         //TODO: find the best formula for searching
-                        Log.d(
-                            "Position",
-                            "Position is: " + firstVisibleItemPosition + " total is: " + totalItemsCount
-                        )
                         if (firstVisibleItemPosition >= totalItemsCount!! * 0.75) {
                             searchViewModel.loadMore()
                         }
@@ -113,6 +108,7 @@ class SearchingFragment : Fragment() {
                     ResponseCode.URL_CHANGED -> it.getString(R.string.url_changed_message)
                     ResponseCode.METHOD_NOT_FOUND -> it.getString(R.string.method_not_found)
                     ResponseCode.NO_NETWORK_CONNECTION -> it.getString(R.string.no_internet_connection)
+                    ResponseCode.NOTHING_FOUND -> it.getString(R.string.nothing_found_message)
                     else -> it.getString(R.string.unknown_error_message)
                 }, "Error"
             )
@@ -120,7 +116,7 @@ class SearchingFragment : Fragment() {
         searchViewModel.observerGotTheMessage()
     }
 
-    private fun startSearchAction(){
+    private fun startSearchAction() {
         if (!searchEditText.text.isEmpty()) {
             searchViewModel.searchFor(searchEditText.text.toString())
             searchEditText.clearFocus()
@@ -137,7 +133,7 @@ class SearchingFragment : Fragment() {
         }
     }
 
-    private fun initObserversListeners(){
+    private fun initObserversListeners() {
         searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
             searchingPhoto = it
             if (searchingPhoto) {
@@ -159,9 +155,9 @@ class SearchingFragment : Fragment() {
         searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
             showErrorMessageDialog(it)
         })
-        searchEditText.setOnEditorActionListener{v, actionId, event ->
-            return@setOnEditorActionListener when(actionId){
-                EditorInfo.IME_ACTION_SEARCH ->{
+        searchEditText.setOnEditorActionListener { v, actionId, event ->
+            return@setOnEditorActionListener when (actionId) {
+                EditorInfo.IME_ACTION_SEARCH -> {
                     startSearchAction()
                     true
                 }
@@ -172,6 +168,7 @@ class SearchingFragment : Fragment() {
             startSearchAction()
         })
     }
+
     override fun onDestroyView() {
         alertDialog?.dismiss()
         super.onDestroyView()
