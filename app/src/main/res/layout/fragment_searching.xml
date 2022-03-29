@@ -18,23 +18,40 @@
             <EditText
                 android:id="@+id/searchEditText"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:hint="@string/search_hint"
                 android:inputType="textVisiblePassword"
+                android:imeOptions="actionSearch"
                 android:lines="1" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/searchButton"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_weight="3" />
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_search_selector"
+                android:scaleType="fitCenter"
+                android:background="@color/transparent"
+                android:layout_weight="4" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/photosRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/topSearchingLinearLayout" />
+            android:layout_below="@id/topSearchingLinearLayout"
+            android:scrollbars="vertical" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            android:indeterminateDrawable="@drawable/custom_progress_bar"
+            android:indeterminateOnly="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </RelativeLayout>
 
 </FrameLayout>

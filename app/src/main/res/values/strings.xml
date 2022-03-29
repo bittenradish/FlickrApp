@@ -11,4 +11,10 @@
     <string name="url_changed_message">Bad request. Please update application or contact support</string>
     <string name="method_not_found">Method not found. Please update application or contact support</string>
     <string name="no_internet_connection">Please check your internet connection</string>
+
+    <string name="search_hint">Search</string>
+    <string name="clear_history">Clear history</string>
+
+    <string name="history">History</string>
+    <string name="search">Search</string>
 </resources>

@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -46,7 +46,7 @@ class HistoryFragment : Fragment() {
             historyAdapter.notifyDataChanged(it)
         })
         historyRecyclerView.adapter = historyAdapter
-        view.findViewById<Button>(R.id.clearDbButton).setOnClickListener {
+        view.findViewById<LinearLayout>(R.id.clearDbButton).setOnClickListener {
             historyViewModel.clearRequestHistory()
         }
         return view

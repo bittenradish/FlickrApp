@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
-    android:orientation="horizontal">
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:layout_margin="10dp">
 
     <TextView
         android:id="@+id/savedRequestTextView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center_vertical|left"
+        android:lines="1" />
 
-    <Button
+    <ImageButton
         android:id="@+id/deleteRequestButton"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="8"
-        android:background="@android:drawable/ic_delete" />
+        android:layout_height="wrap_content"
+        android:layout_weight="6"
+        android:src="@drawable/ic_cancel"
+        android:scaleType="fitCenter"
+        android:background="@color/transparent"/>
 
 </LinearLayout>

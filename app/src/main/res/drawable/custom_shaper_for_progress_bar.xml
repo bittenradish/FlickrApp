@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+        android:innerRadiusRatio="4"
+        android:shape="ring"
+        android:thicknessRatio="5.333"
+        android:useLevel="false" >
+        <size
+            android:height="60dip"
+            android:width="60dp" />
+        <gradient
+            android:centerColor="@color/pink_flickr"
+            android:centerY="0.50"
+            android:endColor="@color/pink_flickr"
+            android:startColor="@color/transparent"
+            android:type="sweep"
+            android:useLevel="false" />
+</shape>

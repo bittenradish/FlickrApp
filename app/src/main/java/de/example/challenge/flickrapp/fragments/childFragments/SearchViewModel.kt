@@ -72,7 +72,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     fun loadMore() {
         //TODO: implement loading next pages for endless scrolling
         photoLoadingLiveData.postValue(true)
-        photoSearchingLiveData.postValue(true)
         currentPage++
         requestStringLiveData.value.let { it1 ->
             if (it1 != null) {
@@ -138,7 +137,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun isInternetAvailable(context: Context): Boolean {
-        var result = false
+        var result: Boolean
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 

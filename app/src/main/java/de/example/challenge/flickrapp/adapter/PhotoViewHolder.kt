@@ -19,7 +19,7 @@ class PhotoViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) {
         Glide
             .with(itemView)
             .load(photoItem.getPhotoUrl())
-            .error(R.drawable.ic_launcher_foreground)
+            .error(R.drawable.ic_flickr_foreground)
             .into(itemImageView)
 
         itemView.setOnClickListener {

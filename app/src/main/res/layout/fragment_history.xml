@@ -5,20 +5,45 @@
     android:layout_height="match_parent"
     tools:context=".fragments.childFragments.HistoryFragment">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <Button
+        <LinearLayout
             android:id="@+id/clearDbButton"
             android:layout_width="match_parent"
-            android:layout_height="60dp" />
+            android:layout_height="match_parent"
+            android:layout_weight="10"
+            android:orientation="horizontal"
+            android:background="@color/pink_flickr"
+            android:gravity="center_vertical" >
+
+            <ImageButton
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_delete"
+                android:background="@color/pink_flickr"
+                android:layout_weight="5"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:text="@string/clear_history"
+                android:textColor="@color/blue_flickr"
+                android:textStyle="bold"
+                android:gravity="center" />
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/historyRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/clearDbButton" />
-    </RelativeLayout>
+            android:layout_weight="1"
+            android:scrollbars="vertical" />
+    </LinearLayout>
 
 </FrameLayout>

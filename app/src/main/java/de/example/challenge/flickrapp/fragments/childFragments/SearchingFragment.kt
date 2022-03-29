@@ -8,8 +8,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -30,6 +32,9 @@ class SearchingFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
     private var alertDialog: AlertDialog? = null
+    private lateinit var progressBar: ProgressBar
+    private lateinit var searchButton: ImageButton
+    private lateinit var searchEditText: EditText
 
     private var loadingMore = false
     private var searchingPhoto = false
@@ -38,14 +43,15 @@ class SearchingFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        //TODO: Network connectivity
         val view: View = inflater.inflate(R.layout.fragment_searching, container, false)
         searchViewModel =
             ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
-        searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
-            showErrorMessageDialog(it)
-        })
+        progressBar = view.findViewById(R.id.progressBar)
+        searchEditText = view.findViewById(R.id.searchEditText)
+        searchButton = view.findViewById(R.id.searchButton)
+
         val photosRecyclerView: RecyclerView = view.findViewById(R.id.photosRecyclerView)
+
         photosRecyclerView.layoutManager = GridLayoutManager(
             context, when (resources.configuration.orientation) {
                 Configuration.ORIENTATION_LANDSCAPE -> 3
@@ -60,45 +66,10 @@ class SearchingFragment : Fragment() {
         searchViewModel.getPhotosLiveData().observe(viewLifecycleOwner, Observer {
             //TODO: improve Adapter update func(don't load all again)
             photosAdapter.notifyDataChanged(it)
-            Log.d("SIZE", "AdapterSize: " + photosAdapter.itemCount)
-        })
-        searchViewModel.getPhotoLoadingMoreLiveData().observe(viewLifecycleOwner, Observer {
-            loadingMore = it
-        })
-        searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
-            searchingPhoto = it
-            if (searchingPhoto) {
-                //TODO: show progressbar
-            } else {
-                //TODO: hide progressbar
-                //TODO enable search button
-            }
         })
         photosRecyclerView.addOnScrollListener(endlessScrolling)
-        val searchEditText: EditText = view.findViewById(R.id.searchEditText)
-        searchViewModel.getRequestStringLiveData().observe(viewLifecycleOwner, Observer {
-            searchEditText.setText(it)
-        })
-        val searchButton: Button = view.findViewById(R.id.searchButton)
-        searchButton.setOnClickListener(View.OnClickListener {
-            if (!searchEditText.text.isEmpty()) {
-                //TODO disable editText
-                //TODO disable search button
-                //TODO add to db and search
-                searchViewModel.searchFor(searchEditText.text.toString())
-                searchEditText.clearFocus()
-                AppExecutors.diskIO().execute(Runnable {
-                    try {
-                        App.getAppInstance().getDataBase().requestDao()
-                            .add(RequestHistoryModel(searchEditText.text.toString()))
-                    } catch (ex: SQLiteConstraintException) {
-                    }
-                })
 
-            } else {
-                Toast.makeText(context, "Search field is empty", Toast.LENGTH_SHORT).show()
-            }
-        })
+        initObserversListeners()
         return view
     }
 
@@ -149,6 +120,58 @@ class SearchingFragment : Fragment() {
         searchViewModel.observerGotTheMessage()
     }
 
+    private fun startSearchAction(){
+        if (!searchEditText.text.isEmpty()) {
+            searchViewModel.searchFor(searchEditText.text.toString())
+            searchEditText.clearFocus()
+            AppExecutors.diskIO().execute(Runnable {
+                try {
+                    App.getAppInstance().getDataBase().requestDao()
+                        .add(RequestHistoryModel(searchEditText.text.toString()))
+                } catch (ex: SQLiteConstraintException) {
+                }
+            })
+
+        } else {
+            Toast.makeText(context, "Search field is empty", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun initObserversListeners(){
+        searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
+            searchingPhoto = it
+            if (searchingPhoto) {
+                progressBar.visibility = View.VISIBLE
+                searchButton.isEnabled = false
+                searchEditText.isEnabled = false
+            } else {
+                progressBar.visibility = View.GONE
+                searchButton.isEnabled = true
+                searchEditText.isEnabled = true
+            }
+        })
+        searchViewModel.getRequestStringLiveData().observe(viewLifecycleOwner, Observer {
+            searchEditText.setText(it)
+        })
+        searchViewModel.getPhotoLoadingMoreLiveData().observe(viewLifecycleOwner, Observer {
+            loadingMore = it
+        })
+        searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
+            showErrorMessageDialog(it)
+        })
+        searchEditText.setOnEditorActionListener{v, actionId, event ->
+            return@setOnEditorActionListener when(actionId){
+                EditorInfo.IME_ACTION_SEARCH ->{
+                    startSearchAction()
+                    true
+                }
+                else -> false
+            }
+        }
+        searchButton.setOnClickListener(View.OnClickListener {
+            startSearchAction()
+        })
+    }
     override fun onDestroyView() {
         alertDialog?.dismiss()
         super.onDestroyView()
