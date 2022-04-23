@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.adapter
+package de.example.challenge.flickrapp.adapters.recycler
 
 interface AdapterItem {
     val HISTORY_TYPE: Int

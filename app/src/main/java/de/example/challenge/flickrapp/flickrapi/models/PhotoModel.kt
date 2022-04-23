@@ -1,6 +1,6 @@
 package de.example.challenge.flickrapp.flickrapi.models
 
-import de.example.challenge.flickrapp.adapter.AdapterItem
+import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 
 data class PhotoModel(
     var id: String, var owner: String, var secret: String, var server: String,

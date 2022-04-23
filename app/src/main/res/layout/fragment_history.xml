@@ -16,9 +16,10 @@
             android:layout_height="match_parent"
             android:layout_weight="10"
             android:orientation="horizontal"
+            android:layout_margin="4dp"
             android:background="@color/pink_flickr"
             android:gravity="center_vertical" >
-
+            //TODO:add rounding background
             <ImageButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.adapter
+package de.example.challenge.flickrapp.adapters.recycler
 
 interface OnHistoryItemListener : OnItemClickedListener {
     fun deleteButtonClicked(requestText: String)

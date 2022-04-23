@@ -1,6 +1,9 @@
 package de.example.challenge.flickrapp.fragments.childFragments
 
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +14,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
-import de.example.challenge.flickrapp.adapter.AdapterItem
-import de.example.challenge.flickrapp.adapter.DataAdapter
-import de.example.challenge.flickrapp.adapter.OnHistoryItemListener
+import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
+import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
+import de.example.challenge.flickrapp.adapters.recycler.OnHistoryItemListener
+import kotlin.math.roundToInt
 
 class HistoryFragment : Fragment() {
 
@@ -45,10 +49,29 @@ class HistoryFragment : Fragment() {
             historyAdapter.notifyDataChanged(it)
         })
         historyRecyclerView.adapter = historyAdapter
-        view.findViewById<LinearLayout>(R.id.clearDbButton).setOnClickListener {
-            historyViewModel.clearRequestHistory()
+        view.findViewById<LinearLayout>(R.id.clearDbButton).apply {
+            if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    5.0f).apply {
+                        val px = convertDpToPx(requireContext(), 4)
+                        setMargins(px, px, px,px)
+                }
+            }
+            setOnClickListener {
+                historyViewModel.clearRequestHistory()
+            }
         }
         return view
+    }
+
+    private fun convertDpToPx(context: Context, valueInDp: Int): Int{
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            valueInDp.toFloat(),
+            context.resources.displayMetrics
+        ).roundToInt()
     }
 
 }

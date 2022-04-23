@@ -1,14 +1,13 @@
-package de.example.challenge.flickrapp.adapter
+package de.example.challenge.flickrapp.adapters.recycler
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
 
 class DataAdapter(
-    @NonNull mData: List<AdapterItem>,
-    @NonNull itemClickedAction: OnItemClickedListener
+    mData: List<AdapterItem>,
+    itemClickedAction: OnItemClickedListener
 ) : RecyclerView.Adapter<AbstractViewHolder>() {
 
     private var onItemClickedListener: OnItemClickedListener = itemClickedAction
@@ -19,7 +18,7 @@ class DataAdapter(
         return when (viewType) {
             1 -> HistoryViewHolder(layoutInflater.inflate(R.layout.history_item, viewGroup, false))
             2 -> PhotoViewHolder(
-                layoutInflater.inflate(
+                layoutInflater.inflate( 
                     (R.layout.photo_search_item),
                     viewGroup,
                     false

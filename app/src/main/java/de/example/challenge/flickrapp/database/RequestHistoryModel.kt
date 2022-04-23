@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import de.example.challenge.flickrapp.adapter.AdapterItem
+import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 
 @Entity(tableName = "requests", indices = [Index(value = ["request"], unique = true)])
 data class RequestHistoryModel(

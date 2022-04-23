@@ -16,6 +16,7 @@ import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Compan
 import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.responseErrorCodeHandling
 import de.example.challenge.flickrapp.flickrapi.models.PhotoModel
 import de.example.challenge.flickrapp.flickrapi.models.PhotosSearchModel
+import de.example.challenge.flickrapp.flickrapi.models.SortEnum
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -59,13 +60,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         responseCodeLiveData.postValue(ResponseCode.RESPONSE_OK)
     }
 
-    fun searchFor(requestText: String) {
+    fun searchFor(requestText: String, sort: SortEnum = SortEnum.RELEVANCE) {
         photoLoadingLiveData.postValue(true)
         photoSearchingLiveData.postValue(true)
         photosLiveData?.postValue(listOf<PhotoModel>())
         currentPage = 1
         requestStringLiveData.postValue(requestText)
-        searchPhotos(requestText = requestText)
+        searchPhotos(requestText = requestText, sort = sort)
     }
 
     fun loadMore() {
@@ -81,56 +82,56 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private fun searchPhotos(page: Int = 1, requestText: String) {
+    private fun searchPhotos(page: Int = 1, requestText: String, sort: SortEnum = SortEnum.RELEVANCE ) {
         flickrApiService.searchPhoto(
             page = page,
             text = requestText,
-            apiKey = getApplication<App>().resources.getString(R.string.API_KEY)
-        )
-            .apply {
-                enqueue(object : Callback<PhotosSearchModel> {
-                    override fun onResponse(
-                        call: Call<PhotosSearchModel>,
-                        response: Response<PhotosSearchModel>
-                    ) {
-                        photoLoadingLiveData.postValue(false)
-                        photoSearchingLiveData.postValue(false)
-                        if (response.isSuccessful) {
-                            if (response.body()?.stat.equals("ok")) {
-                                if (page != 1) {
-                                    val oldList: MutableList<PhotoModel> =
-                                        (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
-                                    response.body()?.photos?.photo?.let { oldList.addAll(it) }
-                                    photosLiveData?.postValue(oldList)
-                                } else {
-                                    photosLiveData?.postValue(response.body()?.photos?.photo)
-                                    if (response.body()?.photos?.photo?.size == 0) {
-                                        responseCodeLiveData.postValue(ResponseCode.NOTHING_FOUND)
-                                    }
+            apiKey = getApplication<App>().resources.getString(R.string.API_KEY),
+            sort = sort.getFullString()
+        ).apply {
+            enqueue(object : Callback<PhotosSearchModel> {
+                override fun onResponse(
+                    call: Call<PhotosSearchModel>,
+                    response: Response<PhotosSearchModel>
+                ) {
+                    photoLoadingLiveData.postValue(false)
+                    photoSearchingLiveData.postValue(false)
+                    if (response.isSuccessful) {
+                        if (response.body()?.stat.equals("ok")) {
+                            if (page != 1) {
+                                val oldList: MutableList<PhotoModel> =
+                                    (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
+                                response.body()?.photos?.photo?.let { oldList.addAll(it) }
+                                photosLiveData?.postValue(oldList)
+                            } else {
+                                photosLiveData?.postValue(response.body()?.photos?.photo)
+                                if (response.body()?.photos?.photo?.size == 0) {
+                                    responseCodeLiveData.postValue(ResponseCode.NOTHING_FOUND)
                                 }
-                            } else if (response.body()?.stat.equals("fail")) {
-                                responseCodeLiveData.postValue(apiErrorCodeHandling(response.body()!!.code))
-                            } else {
-                                responseCodeLiveData.postValue(ResponseCode.UNKNOWN_EXCEPTION)
                             }
+                        } else if (response.body()?.stat.equals("fail")) {
+                            responseCodeLiveData.postValue(apiErrorCodeHandling(response.body()!!.code))
                         } else {
-                            responseCodeLiveData.postValue(responseErrorCodeHandling(response.code()))
+                            responseCodeLiveData.postValue(ResponseCode.UNKNOWN_EXCEPTION)
                         }
+                    } else {
+                        responseCodeLiveData.postValue(responseErrorCodeHandling(response.code()))
                     }
+                }
 
-                    override fun onFailure(call: Call<PhotosSearchModel>, throwable: Throwable) {
-                        photoLoadingLiveData.postValue(false)
-                        photoSearchingLiveData.postValue(false)
-                        responseCodeLiveData.postValue(
-                            if (isInternetAvailable(getApplication<App>().applicationContext)) {
-                                errorChecker(call, throwable)
-                            } else {
-                                ResponseCode.NO_NETWORK_CONNECTION
-                            }
-                        )
-                    }
-                })
-            }
+                override fun onFailure(call: Call<PhotosSearchModel>, throwable: Throwable) {
+                    photoLoadingLiveData.postValue(false)
+                    photoSearchingLiveData.postValue(false)
+                    responseCodeLiveData.postValue(
+                        if (isInternetAvailable(getApplication<App>().applicationContext)) {
+                            errorChecker(call, throwable)
+                        } else {
+                            ResponseCode.NO_NETWORK_CONNECTION
+                        }
+                    )
+                }
+            })
+        }
     }
 
     private fun isInternetAvailable(context: Context): Boolean {

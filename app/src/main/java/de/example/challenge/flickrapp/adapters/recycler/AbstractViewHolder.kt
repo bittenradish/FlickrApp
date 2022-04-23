@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.adapter
+package de.example.challenge.flickrapp.adapters.recycler
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView

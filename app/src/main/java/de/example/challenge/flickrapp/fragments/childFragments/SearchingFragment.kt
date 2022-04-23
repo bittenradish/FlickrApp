@@ -4,28 +4,28 @@ import android.app.AlertDialog
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
-import de.example.challenge.flickrapp.adapter.AdapterItem
-import de.example.challenge.flickrapp.adapter.DataAdapter
-import de.example.challenge.flickrapp.adapter.OnPhotoItemListener
+import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
+import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
+import de.example.challenge.flickrapp.adapters.recycler.OnPhotoItemListener
+import de.example.challenge.flickrapp.adapters.spinner.SpinnerAdapter
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.database.RequestHistoryModel
 import de.example.challenge.flickrapp.dialogs.ShowDialogs
 import de.example.challenge.flickrapp.executors.AppExecutors
 import de.example.challenge.flickrapp.flickrapi.ResponseCode
+import de.example.challenge.flickrapp.flickrapi.models.SortEnum
 
 class SearchingFragment : Fragment() {
 
@@ -34,6 +34,9 @@ class SearchingFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var searchButton: ImageButton
     private lateinit var searchEditText: EditText
+    private lateinit var sortSpinner: Spinner
+    private lateinit var sortAdapter: SpinnerAdapter
+    private lateinit var sortOrderCheckBox: CheckBox
 
     private var loadingMore = false
     private var searchingPhoto = false
@@ -48,9 +51,18 @@ class SearchingFragment : Fragment() {
         progressBar = view.findViewById(R.id.progressBar)
         searchEditText = view.findViewById(R.id.searchEditText)
         searchButton = view.findViewById(R.id.searchButton)
-
+        sortOrderCheckBox = view.findViewById(R.id.sortOrderCheckBox)
+        sortOrderCheckBox.setButtonDrawable(R.color.transparent)
+        sortSpinner = view.findViewById(R.id.sortSpinner)
+        Log.d("TAG", "POSITION BEFORE" + sortSpinner.selectedItemPosition)
+        sortAdapter = SpinnerAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            resources.getStringArray(R.array.sort_options)
+        ).also {
+            sortSpinner.adapter = it
+        }
         val photosRecyclerView: RecyclerView = view.findViewById(R.id.photosRecyclerView)
-
         photosRecyclerView.layoutManager = GridLayoutManager(
             context, when (resources.configuration.orientation) {
                 Configuration.ORIENTATION_LANDSCAPE -> 3
@@ -116,9 +128,12 @@ class SearchingFragment : Fragment() {
         searchViewModel.observerGotTheMessage()
     }
 
-    private fun startSearchAction() {
+    private fun startSearchAction(withMessage:Boolean = true) {
         if (!searchEditText.text.isEmpty()) {
-            searchViewModel.searchFor(searchEditText.text.toString())
+            searchViewModel.searchFor(
+                searchEditText.text.toString(),
+                getSortTypeSelected()
+            )
             searchEditText.clearFocus()
             AppExecutors.diskIO().execute(Runnable {
                 try {
@@ -129,22 +144,15 @@ class SearchingFragment : Fragment() {
             })
 
         } else {
-            Toast.makeText(context, "Search field is empty", Toast.LENGTH_SHORT).show()
+            if(withMessage) {
+                Toast.makeText(context, "Search field is empty", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     private fun initObserversListeners() {
         searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
-            searchingPhoto = it
-            if (searchingPhoto) {
-                progressBar.visibility = View.VISIBLE
-                searchButton.isEnabled = false
-                searchEditText.isEnabled = false
-            } else {
-                progressBar.visibility = View.GONE
-                searchButton.isEnabled = true
-                searchEditText.isEnabled = true
-            }
+            refreshUiEnable(it)
         })
         searchViewModel.getRequestStringLiveData().observe(viewLifecycleOwner, Observer {
             searchEditText.setText(it)
@@ -155,7 +163,7 @@ class SearchingFragment : Fragment() {
         searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
             showErrorMessageDialog(it)
         })
-        searchEditText.setOnEditorActionListener { v, actionId, event ->
+        searchEditText.setOnEditorActionListener { _, actionId, _ ->
             return@setOnEditorActionListener when (actionId) {
                 EditorInfo.IME_ACTION_SEARCH -> {
                     startSearchAction()
@@ -167,6 +175,57 @@ class SearchingFragment : Fragment() {
         searchButton.setOnClickListener(View.OnClickListener {
             startSearchAction()
         })
+        sortSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+//                startSearchAction(false)
+                sortOrderCheckBox.isEnabled = (getSortTypeSelected() != SortEnum.RELEVANCE)
+                sortAdapter.selectedPosition = position
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+        }
+//        sortOrderCheckBox.setOnCheckedChangeListener { p0, p1 -> startSearchAction(false) }
+    }
+
+    private fun refreshUiEnable(bool: Boolean){
+        searchingPhoto = bool
+        if (searchingPhoto) {
+            progressBar.visibility = View.VISIBLE
+            searchButton.isEnabled = false
+            searchEditText.isEnabled = false
+            sortSpinner.isEnabled = false
+            sortOrderCheckBox.isEnabled = false
+        } else {
+            progressBar.visibility = View.GONE
+            searchButton.isEnabled = true
+            searchEditText.isEnabled = true
+            sortSpinner.isEnabled = true
+            sortOrderCheckBox.isEnabled = (getSortTypeSelected() != SortEnum.RELEVANCE)
+        }
+    }
+
+    private fun getSortTypeSelected(): SortEnum {
+        val arr = resources.getStringArray(R.array.sort_options)
+        return when (sortSpinner.selectedItem.toString()) {
+            arr[0] -> SortEnum.RELEVANCE
+            arr[1] -> {
+                if (sortOrderCheckBox.isChecked) SortEnum.INTERESTINGNESS_ASC else SortEnum.INTERESTINGNESS_DESC
+            }
+            arr[2] -> {
+                if (sortOrderCheckBox.isChecked) SortEnum.DATE_TAKEN_ASC else SortEnum.DATE_TAKEN_DESC
+            }
+            arr[3] -> {
+                if (sortOrderCheckBox.isChecked) SortEnum.DATE_POSTED_ASC else SortEnum.DATE_POSTED_DESC
+            }
+            else -> SortEnum.RELEVANCE
+        }
     }
 
     override fun onDestroyView() {
