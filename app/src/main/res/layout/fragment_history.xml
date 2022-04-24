@@ -17,7 +17,7 @@
             android:layout_weight="10"
             android:orientation="horizontal"
             android:layout_margin="4dp"
-            android:background="@color/pink_flickr"
+            android:background="@drawable/pink_button"
             android:gravity="center_vertical" >
             //TODO:add rounding background
             <ImageButton
@@ -25,7 +25,7 @@
                 android:layout_height="match_parent"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_delete"
-                android:background="@color/pink_flickr"
+                android:background="@drawable/pink_button"
                 android:layout_weight="5"/>
 
             <TextView

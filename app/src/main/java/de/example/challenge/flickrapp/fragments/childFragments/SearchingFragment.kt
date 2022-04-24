@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -54,12 +53,14 @@ class SearchingFragment : Fragment() {
         sortOrderCheckBox = view.findViewById(R.id.sortOrderCheckBox)
         sortOrderCheckBox.setButtonDrawable(R.color.transparent)
         sortSpinner = view.findViewById(R.id.sortSpinner)
-        Log.d("TAG", "POSITION BEFORE" + sortSpinner.selectedItemPosition)
         sortAdapter = SpinnerAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
             resources.getStringArray(R.array.sort_options)
-        ).also {
+        ) { it ->
+            sortSpinner.setSelection(it)
+            startSearchAction(false)
+        }.also {
             sortSpinner.adapter = it
         }
         val photosRecyclerView: RecyclerView = view.findViewById(R.id.photosRecyclerView)
@@ -163,6 +164,19 @@ class SearchingFragment : Fragment() {
         searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
             showErrorMessageDialog(it)
         })
+        searchViewModel.getSortPositionObserver().observe(viewLifecycleOwner) {
+            sortAdapter.selectedPosition = when (it) {
+                SortEnum.RELEVANCE -> 0
+                SortEnum.INTERESTINGNESS_DESC ->1
+                SortEnum.INTERESTINGNESS_ASC -> 1
+                SortEnum.DATE_TAKEN_DESC -> 2
+                SortEnum.DATE_TAKEN_ASC -> 2
+                SortEnum.DATE_POSTED_DESC -> 3
+                SortEnum.DATE_POSTED_ASC -> 3
+                else -> 0
+            }
+            sortSpinner.setSelection(sortAdapter.selectedPosition)
+        }
         searchEditText.setOnEditorActionListener { _, actionId, _ ->
             return@setOnEditorActionListener when (actionId) {
                 EditorInfo.IME_ACTION_SEARCH -> {
@@ -182,16 +196,14 @@ class SearchingFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-//                startSearchAction(false)
                 sortOrderCheckBox.isEnabled = (getSortTypeSelected() != SortEnum.RELEVANCE)
-                sortAdapter.selectedPosition = position
             }
 
             override fun onNothingSelected(p0: AdapterView<*>?) {
 
             }
         }
-//        sortOrderCheckBox.setOnCheckedChangeListener { p0, p1 -> startSearchAction(false) }
+        sortOrderCheckBox.setOnClickListener { startSearchAction(false) }
     }
 
     private fun refreshUiEnable(bool: Boolean){

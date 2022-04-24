@@ -30,6 +30,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         MutableLiveData(ResponseCode.RESPONSE_OK)
     private val flickrApiService = FlickrApi.createForSearch()
     private var requestStringLiveData: MutableLiveData<String> = MutableLiveData()
+    private var sortPositionLiveData: MutableLiveData<SortEnum> = MutableLiveData(SortEnum.RELEVANCE)
     private var currentPage: Int = 1
 
     fun getPhotosLiveData(): LiveData<List<PhotoModel>> {
@@ -56,11 +57,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         return responseCodeLiveData
     }
 
+    fun getSortPositionObserver():LiveData<SortEnum>{
+        return sortPositionLiveData
+    }
+
     fun observerGotTheMessage() {
         responseCodeLiveData.postValue(ResponseCode.RESPONSE_OK)
     }
 
     fun searchFor(requestText: String, sort: SortEnum = SortEnum.RELEVANCE) {
+        sortPositionLiveData.postValue(sort)
         photoLoadingLiveData.postValue(true)
         photoSearchingLiveData.postValue(true)
         photosLiveData?.postValue(listOf<PhotoModel>())

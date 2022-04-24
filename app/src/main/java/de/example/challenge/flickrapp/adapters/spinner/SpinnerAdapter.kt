@@ -8,17 +8,14 @@ import android.widget.ArrayAdapter
 import android.widget.CheckedTextView
 import de.example.challenge.flickrapp.R
 
-class SpinnerAdapter(context: Context, resource: Int, private val objects: Array<String>, var selectedPosition: Int = 0) :
-    ArrayAdapter<String>(context, resource, objects) {
-    init{
-//        selectedItem?.run{
-//            for(str in objects){
-//                if(str.equals(this)){
-//                    selectedPosition = objects.indexOf(str)
-//                }
-//            }
-//        }
-    }
+class SpinnerAdapter(
+    context: Context,
+    resource: Int,
+    private val objects: Array<String>,
+    private var onSpinnerItemListener: OnSpinnerItemListener
+) : ArrayAdapter<String>(context, resource, objects) {
+
+    var selectedPosition: Int = 0
 
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
         return getCustomView(position, parent)
@@ -29,11 +26,12 @@ class SpinnerAdapter(context: Context, resource: Int, private val objects: Array
             .inflate(android.R.layout.simple_spinner_dropdown_item, viewGroup, false)
         val text: CheckedTextView = view.findViewById(android.R.id.text1)
         text.text = objects[position]
-        if(position == selectedPosition){
+        if (position == selectedPosition) {
             text.setTextColor(context.resources.getColor(R.color.pink_flickr))
         }
-        view.setOnTouchListener { _, _ ->
+        view.setOnTouchListener { _ , _ ->
             selectedPosition = position
+            onSpinnerItemListener.onItemClicked(position)
             false
         }
         return view
