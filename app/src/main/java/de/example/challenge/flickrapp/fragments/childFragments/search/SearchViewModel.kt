@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.application.App
+import de.example.challenge.flickrapp.database.DataBaseRepository
 import de.example.challenge.flickrapp.flickrapi.FlickrApi
 import de.example.challenge.flickrapp.flickrapi.ResponseCode
 import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.apiErrorCodeHandling
@@ -61,6 +62,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun searchFor(requestText: String, sort: SortEnum = SortEnum.RELEVANCE) {
+        DataBaseRepository.addRequest(requestText)
         sortPositionLiveData.postValue(sort)
         searchStateLiveData.postValue(SearchState.SEARCHING)
         photosLiveData?.postValue(listOf<PhotoModel>())

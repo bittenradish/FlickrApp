@@ -2,7 +2,6 @@ package de.example.challenge.flickrapp.fragments.childFragments.search
 
 import android.app.AlertDialog
 import android.content.res.Configuration
-import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,10 +18,7 @@ import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
 import de.example.challenge.flickrapp.adapters.recycler.OnPhotoItemListener
 import de.example.challenge.flickrapp.adapters.spinner.SpinnerAdapter
-import de.example.challenge.flickrapp.application.App
-import de.example.challenge.flickrapp.database.RequestHistoryModel
 import de.example.challenge.flickrapp.dialogs.ShowDialogs
-import de.example.challenge.flickrapp.executors.AppExecutors
 import de.example.challenge.flickrapp.flickrapi.ResponseCode
 import de.example.challenge.flickrapp.flickrapi.models.SortEnum
 
@@ -131,14 +127,6 @@ class SearchingFragment : Fragment() {
                 getSortTypeSelected()
             )
             searchEditText.clearFocus()
-            AppExecutors.diskIO().execute(Runnable {
-                try {
-                    App.getAppInstance().getDataBase().requestDao()
-                        .add(RequestHistoryModel(searchEditText.text.toString()))
-                } catch (ex: SQLiteConstraintException) {
-                }
-            })
-
         } else {
             if(withMessage) {
                 Toast.makeText(context, "Search field is empty", Toast.LENGTH_SHORT).show()
