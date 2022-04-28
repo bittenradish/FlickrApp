@@ -17,6 +17,7 @@ import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
 import de.example.challenge.flickrapp.adapters.recycler.OnHistoryItemListener
+import de.example.challenge.flickrapp.fragments.childFragments.search.SearchViewModel
 import kotlin.math.roundToInt
 
 class HistoryFragment : Fragment() {

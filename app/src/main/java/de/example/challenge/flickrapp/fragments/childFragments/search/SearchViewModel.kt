@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.fragments.childFragments
+package de.example.challenge.flickrapp.fragments.childFragments.search
 
 import android.app.Application
 import android.content.Context
@@ -24,8 +24,7 @@ import retrofit2.Response
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
     private var photosLiveData: MutableLiveData<List<PhotoModel>>? = null
-    private var photoLoadingLiveData: MutableLiveData<Boolean> = MutableLiveData(false)
-    private var photoSearchingLiveData: MutableLiveData<Boolean> = MutableLiveData(false)
+    private var searchStateLiveData: MutableLiveData<SearchState> = MutableLiveData(SearchState.READY)
     private var responseCodeLiveData: MutableLiveData<ResponseCode> =
         MutableLiveData(ResponseCode.RESPONSE_OK)
     private val flickrApiService = FlickrApi.createForSearch()
@@ -41,12 +40,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         return photosLiveData!!
     }
 
-    fun getPhotoLoadingMoreLiveData(): LiveData<Boolean> {
-        return photoLoadingLiveData
-    }
-
-    fun getPhotoSearchingLiveData(): LiveData<Boolean> {
-        return photoSearchingLiveData
+    fun getSearchStateLiveDate(): LiveData<SearchState>{
+        return searchStateLiveData
     }
 
     fun getRequestStringLiveData(): LiveData<String> {
@@ -67,8 +62,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun searchFor(requestText: String, sort: SortEnum = SortEnum.RELEVANCE) {
         sortPositionLiveData.postValue(sort)
-        photoLoadingLiveData.postValue(true)
-        photoSearchingLiveData.postValue(true)
+        searchStateLiveData.postValue(SearchState.SEARCHING)
         photosLiveData?.postValue(listOf<PhotoModel>())
         currentPage = 1
         requestStringLiveData.postValue(requestText)
@@ -76,14 +70,16 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun loadMore() {
-        photoLoadingLiveData.postValue(true)
-        currentPage++
-        requestStringLiveData.value.let { it1 ->
-            if (it1 != null) {
-                searchPhotos(
-                    currentPage,
-                    it1
-                )
+        if(searchStateLiveData.value!! == SearchState.READY) {
+            searchStateLiveData.postValue(SearchState.LOADING_MORE)
+            currentPage++
+            requestStringLiveData.value.let { it1 ->
+                if (it1 != null) {
+                    searchPhotos(
+                        currentPage,
+                        it1
+                    )
+                }
             }
         }
     }
@@ -100,8 +96,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     call: Call<PhotosSearchModel>,
                     response: Response<PhotosSearchModel>
                 ) {
-                    photoLoadingLiveData.postValue(false)
-                    photoSearchingLiveData.postValue(false)
+                    searchStateLiveData.postValue(SearchState.READY)
                     if (response.isSuccessful) {
                         if (response.body()?.stat.equals("ok")) {
                             if (page != 1) {
@@ -126,8 +121,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 }
 
                 override fun onFailure(call: Call<PhotosSearchModel>, throwable: Throwable) {
-                    photoLoadingLiveData.postValue(false)
-                    photoSearchingLiveData.postValue(false)
+                    searchStateLiveData.postValue(SearchState.READY)
                     responseCodeLiveData.postValue(
                         if (isInternetAvailable(getApplication<App>().applicationContext)) {
                             errorChecker(call, throwable)

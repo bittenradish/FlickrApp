@@ -6,12 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.fragments.childFragments.HistoryFragment
-import de.example.challenge.flickrapp.fragments.childFragments.SearchViewModel
-import de.example.challenge.flickrapp.fragments.childFragments.SearchingFragment
+import de.example.challenge.flickrapp.fragments.childFragments.search.SearchState
+import de.example.challenge.flickrapp.fragments.childFragments.search.SearchViewModel
+import de.example.challenge.flickrapp.fragments.childFragments.search.SearchingFragment
 import de.example.challenge.flickrapp.ui.SelectableButton
 
 class FlowFragment : Fragment(), IOnBackPressed {
@@ -34,11 +34,11 @@ class FlowFragment : Fragment(), IOnBackPressed {
         historyButton = view.findViewById(R.id.historyButton)
 
         searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-        searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
-            if (it) {
+        searchViewModel.getSearchStateLiveDate().observe(viewLifecycleOwner){
+            if (it == SearchState.SEARCHING) {
                 replaceSearchingFragment()
             }
-        })
+        }
         if (savedInstanceState == null) {
             historyFragment = HistoryFragment()
             searchingFragment = SearchingFragment()

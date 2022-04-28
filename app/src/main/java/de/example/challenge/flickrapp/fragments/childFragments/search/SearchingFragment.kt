@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.fragments.childFragments
+package de.example.challenge.flickrapp.fragments.childFragments.search
 
 import android.app.AlertDialog
 import android.content.res.Configuration
@@ -36,9 +36,6 @@ class SearchingFragment : Fragment() {
     private lateinit var sortSpinner: Spinner
     private lateinit var sortAdapter: SpinnerAdapter
     private lateinit var sortOrderCheckBox: CheckBox
-
-    private var loadingMore = false
-    private var searchingPhoto = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -93,11 +90,9 @@ class SearchingFragment : Fragment() {
                     val totalItemsCount = recyclerView.layoutManager?.itemCount
                     val firstVisibleItemPosition =
                         (recyclerView.layoutManager as GridLayoutManager).findFirstVisibleItemPosition()
-                    if (!searchingPhoto && !loadingMore) {
-                        //TODO: find the best formula for searching
-                        if (firstVisibleItemPosition >= totalItemsCount!! * 0.75) {
-                            searchViewModel.loadMore()
-                        }
+                    //TODO: find the best formula for searching
+                    if (firstVisibleItemPosition >= totalItemsCount!! * 0.75) {
+                        searchViewModel.loadMore()
                     }
                 }
             }
@@ -152,15 +147,12 @@ class SearchingFragment : Fragment() {
     }
 
     private fun initObserversListeners() {
-        searchViewModel.getPhotoSearchingLiveData().observe(viewLifecycleOwner, Observer {
-            refreshUiEnable(it)
-        })
         searchViewModel.getRequestStringLiveData().observe(viewLifecycleOwner, Observer {
             searchEditText.setText(it)
         })
-        searchViewModel.getPhotoLoadingMoreLiveData().observe(viewLifecycleOwner, Observer {
-            loadingMore = it
-        })
+        searchViewModel.getSearchStateLiveDate().observe(viewLifecycleOwner) {
+            refreshUiEnable(it)
+        }
         searchViewModel.getResponseCodeLiveData().observe(viewLifecycleOwner, Observer {
             showErrorMessageDialog(it)
         })
@@ -206,9 +198,8 @@ class SearchingFragment : Fragment() {
         sortOrderCheckBox.setOnClickListener { startSearchAction(false) }
     }
 
-    private fun refreshUiEnable(bool: Boolean){
-        searchingPhoto = bool
-        if (searchingPhoto) {
+    private fun refreshUiEnable(state: SearchState){
+        if (state == SearchState.SEARCHING) {
             progressBar.visibility = View.VISIBLE
             searchButton.isEnabled = false
             searchEditText.isEnabled = false
