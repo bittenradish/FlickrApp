@@ -1,6 +1,6 @@
-package de.example.challenge.flickrapp.flickrapi
+package de.example.challenge.flickrapp.data.repository.flickrapi
 
-import de.example.challenge.flickrapp.flickrapi.models.PhotosSearchModel
+import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotosSearchModel
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

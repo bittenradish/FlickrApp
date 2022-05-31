@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.database
+package de.example.challenge.flickrapp.data.repository.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

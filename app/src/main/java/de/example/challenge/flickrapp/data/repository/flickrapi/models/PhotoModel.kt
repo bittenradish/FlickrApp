@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.flickrapi.models
+package de.example.challenge.flickrapp.data.repository.flickrapi.models
 
 import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 

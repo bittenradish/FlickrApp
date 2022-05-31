@@ -6,7 +6,7 @@ import android.widget.TextView
 import androidx.annotation.NonNull
 import com.bumptech.glide.Glide
 import de.example.challenge.flickrapp.R
-import de.example.challenge.flickrapp.flickrapi.models.PhotoModel
+import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotoModel
 
 class PhotoViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) {
     private var itemImageView: ImageView = itemView.findViewById(R.id.itemImageView)

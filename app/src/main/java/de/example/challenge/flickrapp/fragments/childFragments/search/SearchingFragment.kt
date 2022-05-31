@@ -18,9 +18,9 @@ import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
 import de.example.challenge.flickrapp.adapters.recycler.OnPhotoItemListener
 import de.example.challenge.flickrapp.adapters.spinner.SpinnerAdapter
+import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
+import de.example.challenge.flickrapp.data.repository.flickrapi.models.SortEnum
 import de.example.challenge.flickrapp.dialogs.ShowDialogs
-import de.example.challenge.flickrapp.flickrapi.ResponseCode
-import de.example.challenge.flickrapp.flickrapi.models.SortEnum
 
 class SearchingFragment : Fragment() {
 

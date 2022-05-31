@@ -1,6 +1,6 @@
-package de.example.challenge.flickrapp.flickrapi.error
+package de.example.challenge.flickrapp.data.repository.flickrapi.error
 
-import de.example.challenge.flickrapp.flickrapi.ResponseCode
+import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
 import retrofit2.Call
 import java.io.IOException
 import java.net.SocketException

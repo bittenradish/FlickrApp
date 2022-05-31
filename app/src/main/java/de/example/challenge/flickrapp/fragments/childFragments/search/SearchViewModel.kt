@@ -9,15 +9,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.application.App
-import de.example.challenge.flickrapp.database.DataBaseRepository
-import de.example.challenge.flickrapp.flickrapi.FlickrApi
-import de.example.challenge.flickrapp.flickrapi.ResponseCode
-import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.apiErrorCodeHandling
-import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.errorChecker
-import de.example.challenge.flickrapp.flickrapi.error.RequestErrorChecker.Companion.responseErrorCodeHandling
-import de.example.challenge.flickrapp.flickrapi.models.PhotoModel
-import de.example.challenge.flickrapp.flickrapi.models.PhotosSearchModel
-import de.example.challenge.flickrapp.flickrapi.models.SortEnum
+import de.example.challenge.flickrapp.data.repository.UserDataBaseRepositoryImpl
+import de.example.challenge.flickrapp.data.repository.flickrapi.FlickrApi
+import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
+import de.example.challenge.flickrapp.data.repository.flickrapi.error.RequestErrorChecker.Companion.apiErrorCodeHandling
+import de.example.challenge.flickrapp.data.repository.flickrapi.error.RequestErrorChecker.Companion.errorChecker
+import de.example.challenge.flickrapp.data.repository.flickrapi.error.RequestErrorChecker.Companion.responseErrorCodeHandling
+import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotoModel
+import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotosSearchModel
+import de.example.challenge.flickrapp.data.repository.flickrapi.models.SortEnum
+import de.example.challenge.flickrapp.domain.usecases.SaveRequestUseCase
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -32,6 +33,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private var requestStringLiveData: MutableLiveData<String> = MutableLiveData()
     private var sortPositionLiveData: MutableLiveData<SortEnum> = MutableLiveData(SortEnum.RELEVANCE)
     private var currentPage: Int = 1
+    private val userDataBaseRepositoryImpl = UserDataBaseRepositoryImpl()
+    private val saveRequestUseCase = SaveRequestUseCase(userDataBaseRepositoryImpl)
 
     fun getPhotosLiveData(): LiveData<List<PhotoModel>> {
         if (photosLiveData == null) {
@@ -62,7 +65,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun searchFor(requestText: String, sort: SortEnum = SortEnum.RELEVANCE) {
-        DataBaseRepository.addRequest(requestText)
+        saveRequestUseCase.execute(requestText)
         sortPositionLiveData.postValue(sort)
         searchStateLiveData.postValue(SearchState.SEARCHING)
         photosLiveData?.postValue(listOf<PhotoModel>())

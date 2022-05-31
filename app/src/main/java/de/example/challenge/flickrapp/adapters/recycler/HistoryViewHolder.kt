@@ -5,7 +5,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.annotation.NonNull
 import de.example.challenge.flickrapp.R
-import de.example.challenge.flickrapp.database.RequestHistoryModel
+import de.example.challenge.flickrapp.data.repository.database.RequestHistoryModel
 
 class HistoryViewHolder(@NonNull itemView: View) : AbstractViewHolder(itemView) {
     private var savedRequestTextView: TextView = itemView.findViewById(R.id.savedRequestTextView)

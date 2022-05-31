@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.database
+package de.example.challenge.flickrapp.data.repository.database
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.LiveData
@@ -11,12 +11,14 @@ object DataBaseRepository {
 
     fun deleteRequest(requestText: String) {
         AppExecutors.diskIO().execute(Runnable {
+            //TODO return boolean
             dataBase.requestDao().delete(requestText)
         })
     }
 
     fun clearRequestHistory() {
         AppExecutors.diskIO().execute(Runnable {
+            //TODO return boolean
             dataBase.requestDao().clearDB()
         })
     }
@@ -28,6 +30,7 @@ object DataBaseRepository {
     fun addRequest(textOfRequest: String){
         AppExecutors.diskIO().execute(Runnable {
             try {
+                //TODO return boolean
                 dataBase.requestDao().add(RequestHistoryModel(textOfRequest))
             } catch (ex: SQLiteConstraintException) {
             }

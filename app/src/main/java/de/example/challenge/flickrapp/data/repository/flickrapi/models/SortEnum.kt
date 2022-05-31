@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.flickrapi.models
+package de.example.challenge.flickrapp.data.repository.flickrapi.models
 
 enum class SortEnum(val sort: String, val ASC: Boolean = false) {
     DATE_POSTED_DESC("date-posted", false){

@@ -1,4 +1,4 @@
-package de.example.challenge.flickrapp.flickrapi
+package de.example.challenge.flickrapp.data.repository.flickrapi
 
 enum class ResponseCode(val errorCode: Int) {
     UNKNOWN_EXCEPTION(0),
