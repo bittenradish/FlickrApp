@@ -7,21 +7,18 @@ import android.net.NetworkCapabilities
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.application.App
+import de.example.challenge.flickrapp.data.repository.FlickrApiRepositoryImpl
 import de.example.challenge.flickrapp.data.repository.UserDataBaseRepositoryImpl
 import de.example.challenge.flickrapp.data.repository.flickrapi.FlickrApi
 import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
-import de.example.challenge.flickrapp.data.repository.flickrapi.error.RequestErrorChecker.Companion.apiErrorCodeHandling
-import de.example.challenge.flickrapp.data.repository.flickrapi.error.RequestErrorChecker.Companion.errorChecker
-import de.example.challenge.flickrapp.data.repository.flickrapi.error.RequestErrorChecker.Companion.responseErrorCodeHandling
 import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotoModel
-import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotosSearchModel
 import de.example.challenge.flickrapp.data.repository.flickrapi.models.SortEnum
 import de.example.challenge.flickrapp.domain.usecases.SaveRequestUseCase
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import de.example.challenge.flickrapp.domain.usecases.SearchPhotoUseCase
+import kotlinx.coroutines.launch
 
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,6 +32,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private var currentPage: Int = 1
     private val userDataBaseRepositoryImpl = UserDataBaseRepositoryImpl()
     private val saveRequestUseCase = SaveRequestUseCase(userDataBaseRepositoryImpl)
+    private val flickrApiRepositoryImpl = FlickrApiRepositoryImpl()
+    private val searchPhotoUseCase = SearchPhotoUseCase(flickrApiRepositoryImpl)
 
     fun getPhotosLiveData(): LiveData<List<PhotoModel>> {
         if (photosLiveData == null) {
@@ -71,7 +70,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         photosLiveData?.postValue(listOf<PhotoModel>())
         currentPage = 1
         requestStringLiveData.postValue(requestText)
-        searchPhotos(requestText = requestText, sort = sort)
+        newSearchPhotos(requestText = requestText, sort = sort)
     }
 
     fun loadMore() {
@@ -80,7 +79,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             currentPage++
             requestStringLiveData.value.let { it1 ->
                 if (it1 != null) {
-                    searchPhotos(
+                    newSearchPhotos(
                         currentPage,
                         it1
                     )
@@ -89,55 +88,83 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private fun searchPhotos(page: Int = 1, requestText: String, sort: SortEnum = SortEnum.RELEVANCE ) {
-        flickrApiService.searchPhoto(
-            page = page,
-            text = requestText,
-            apiKey = getApplication<App>().resources.getString(R.string.API_KEY),
-            sort = sort.getFullString()
-        ).apply {
-            enqueue(object : Callback<PhotosSearchModel> {
-                override fun onResponse(
-                    call: Call<PhotosSearchModel>,
-                    response: Response<PhotosSearchModel>
-                ) {
-                    searchStateLiveData.postValue(SearchState.READY)
-                    if (response.isSuccessful) {
-                        if (response.body()?.stat.equals("ok")) {
-                            if (page != 1) {
-                                val oldList: MutableList<PhotoModel> =
-                                    (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
-                                response.body()?.photos?.photo?.let { oldList.addAll(it) }
-                                photosLiveData?.postValue(oldList)
-                            } else {
-                                photosLiveData?.postValue(response.body()?.photos?.photo)
-                                if (response.body()?.photos?.photo?.size == 0) {
-                                    responseCodeLiveData.postValue(ResponseCode.NOTHING_FOUND)
-                                }
-                            }
-                        } else if (response.body()?.stat.equals("fail")) {
-                            responseCodeLiveData.postValue(apiErrorCodeHandling(response.body()!!.code))
-                        } else {
-                            responseCodeLiveData.postValue(ResponseCode.UNKNOWN_EXCEPTION)
-                        }
+    private fun newSearchPhotos(page: Int = 1, requestText: String, sort: SortEnum = SortEnum.RELEVANCE){
+        viewModelScope.launch {
+            val result = searchPhotoUseCase.execute(
+                page,
+                requestText,
+                sort,
+                apiKey = getApplication<App>().resources.getString(R.string.API_KEY)
+            )
+            if (result.responseCode != ResponseCode.IO_EXCEPTION && result.responseCode != ResponseCode.RUNTIME_EXCEPTION) {
+                searchStateLiveData.postValue(SearchState.READY)
+                responseCodeLiveData.postValue(result.responseCode)
+                val oldList: MutableList<PhotoModel> =
+                    (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
+                result.photos?.let { oldList.addAll(it) }
+                photosLiveData?.postValue(oldList)
+            } else {
+                searchStateLiveData.postValue(SearchState.READY)
+                responseCodeLiveData.postValue(
+                    if (isInternetAvailable(getApplication<App>().applicationContext)) {
+                        result.responseCode
                     } else {
-                        responseCodeLiveData.postValue(responseErrorCodeHandling(response.code()))
+                        ResponseCode.NO_NETWORK_CONNECTION
                     }
-                }
-
-                override fun onFailure(call: Call<PhotosSearchModel>, throwable: Throwable) {
-                    searchStateLiveData.postValue(SearchState.READY)
-                    responseCodeLiveData.postValue(
-                        if (isInternetAvailable(getApplication<App>().applicationContext)) {
-                            errorChecker(call, throwable)
-                        } else {
-                            ResponseCode.NO_NETWORK_CONNECTION
-                        }
-                    )
-                }
-            })
+                )
+            }
         }
     }
+
+//    private fun searchPhotos(page: Int = 1, requestText: String, sort: SortEnum = SortEnum.RELEVANCE ) {
+//        flickrApiService.searchPhoto(
+//            page = page,
+//            text = requestText,
+//            apiKey = getApplication<App>().resources.getString(R.string.API_KEY),
+//            sort = sort.getFullString()
+//        ).apply {
+//            enqueue(object : Callback<PhotosSearchModel> {
+//                override fun onResponse(
+//                    call: Call<PhotosSearchModel>,
+//                    response: Response<PhotosSearchModel>
+//                ) {
+//                    searchStateLiveData.postValue(SearchState.READY)
+//                    if (response.isSuccessful) {
+//                        if (response.body()?.stat.equals("ok")) {
+//                            if (page != 1) {
+//                                val oldList: MutableList<PhotoModel> =
+//                                    (photosLiveData?.value as List<PhotoModel>).map { it.copy() } as MutableList<PhotoModel>
+//                                response.body()?.photos?.photo?.let { oldList.addAll(it) }
+//                                photosLiveData?.postValue(oldList)
+//                            } else {
+//                                photosLiveData?.postValue(response.body()?.photos?.photo)
+//                                if (response.body()?.photos?.photo?.size == 0) {
+//                                    responseCodeLiveData.postValue(ResponseCode.NOTHING_FOUND)
+//                                }
+//                            }
+//                        } else if (response.body()?.stat.equals("fail")) {
+//                            responseCodeLiveData.postValue(apiErrorCodeHandling(response.body()!!.code))
+//                        } else {
+//                            responseCodeLiveData.postValue(ResponseCode.UNKNOWN_EXCEPTION)
+//                        }
+//                    } else {
+//                        responseCodeLiveData.postValue(responseErrorCodeHandling(response.code()))
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<PhotosSearchModel>, throwable: Throwable) {
+//                    searchStateLiveData.postValue(SearchState.READY)
+//                    responseCodeLiveData.postValue(
+//                        if (isInternetAvailable(getApplication<App>().applicationContext)) {
+//                            errorChecker(call, throwable)
+//                        } else {
+//                            ResponseCode.NO_NETWORK_CONNECTION
+//                        }
+//                    )
+//                }
+//            })
+//        }
+//    }
 
     private fun isInternetAvailable(context: Context): Boolean {
         var result: Boolean

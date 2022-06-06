@@ -1,7 +1,6 @@
 package de.example.challenge.flickrapp.data.repository.flickrapi.error
 
 import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
-import retrofit2.Call
 import java.io.IOException
 import java.net.SocketException
 import java.net.SocketTimeoutException
@@ -35,17 +34,23 @@ class RequestErrorChecker {
             }
         }
 
-        fun errorChecker(call: Call<out Any?>, throwable: Throwable): ResponseCode {
+        fun errorChecker(
+//            call: Call<out Any?>, 
+            throwable: Throwable?
+        ): ResponseCode {
+            if(throwable == null)
+                return ResponseCode.UNKNOWN_EXCEPTION
             return when (throwable) {
                 is SocketTimeoutException -> ResponseCode.SOCKET_TIMEOUT
                 is UnknownServiceException -> ResponseCode.UNKNOWN_SERVICE_EXCEPTION
                 is SocketException -> ResponseCode.SOCKET_EXCEPTION
                 is IOException -> ResponseCode.IO_EXCEPTION
-                else -> if (call.isCanceled) {
-                    ResponseCode.CALL_CANCELLED
-                } else {
+                else ->
+//                    if (call.isCanceled) {
+//                    ResponseCode.CALL_CANCELLED
+//                } else {
                     ResponseCode.UNKNOWN_EXCEPTION
-                }
+//                }
             }
         }
     }
