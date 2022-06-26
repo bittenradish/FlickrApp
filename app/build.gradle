@@ -70,4 +70,12 @@ dependencies {
 
     //liveData
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+
+    //Koin
+    def koin_version = "3.2.0"
+    implementation "io.insert-koin:koin-android:$koin_version"
+
+    // Koin Test
+    testImplementation "io.insert-koin:koin-test:$koin_version"
+    testImplementation "io.insert-koin:koin-test-junit4:$koin_version"
 }

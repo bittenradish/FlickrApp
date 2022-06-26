@@ -17,19 +17,22 @@ import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
 import de.example.challenge.flickrapp.adapters.recycler.OnHistoryItemListener
+import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.fragments.childFragments.search.SearchViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
 
 class HistoryFragment : Fragment() {
 
-    private lateinit var historyViewModel: HistoryViewModel
+    private val historyViewModel: HistoryViewModel by viewModel<HistoryViewModel> { parametersOf(App.getAppInstance()) }
     private lateinit var searchViewModel: SearchViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_history, container, false)
-        historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
+//        historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
         searchViewModel =
             ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
         val historyAdapter: DataAdapter =
@@ -51,13 +54,14 @@ class HistoryFragment : Fragment() {
         })
         historyRecyclerView.adapter = historyAdapter
         view.findViewById<LinearLayout>(R.id.clearDbButton).apply {
-            if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    5.0f).apply {
-                        val px = convertDpToPx(requireContext(), 4)
-                        setMargins(px, px, px,px)
+                    5.0f
+                ).apply {
+                    val px = convertDpToPx(requireContext(), 4)
+                    setMargins(px, px, px, px)
                 }
             }
             setOnClickListener {
@@ -67,7 +71,7 @@ class HistoryFragment : Fragment() {
         return view
     }
 
-    private fun convertDpToPx(context: Context, valueInDp: Int): Int{
+    private fun convertDpToPx(context: Context, valueInDp: Int): Int {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             valueInDp.toFloat(),

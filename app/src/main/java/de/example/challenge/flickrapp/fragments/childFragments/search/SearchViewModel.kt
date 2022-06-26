@@ -10,30 +10,27 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.application.App
-import de.example.challenge.flickrapp.data.repository.FlickrApiRepositoryImpl
-import de.example.challenge.flickrapp.data.repository.UserDataBaseRepositoryImpl
-import de.example.challenge.flickrapp.data.repository.flickrapi.FlickrApi
 import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
 import de.example.challenge.flickrapp.data.repository.flickrapi.models.PhotoModel
 import de.example.challenge.flickrapp.data.repository.flickrapi.models.SortEnum
 import de.example.challenge.flickrapp.domain.usecases.SaveRequestUseCase
 import de.example.challenge.flickrapp.domain.usecases.SearchPhotoUseCase
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.get
 
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
     private var photosLiveData: MutableLiveData<List<PhotoModel>>? = null
-    private var searchStateLiveData: MutableLiveData<SearchState> = MutableLiveData(SearchState.READY)
+    private var searchStateLiveData: MutableLiveData<SearchState> =
+        MutableLiveData(SearchState.READY)
     private var responseCodeLiveData: MutableLiveData<ResponseCode> =
         MutableLiveData(ResponseCode.RESPONSE_OK)
-    private val flickrApiService = FlickrApi.createForSearch()
     private var requestStringLiveData: MutableLiveData<String> = MutableLiveData()
-    private var sortPositionLiveData: MutableLiveData<SortEnum> = MutableLiveData(SortEnum.RELEVANCE)
+    private var sortPositionLiveData: MutableLiveData<SortEnum> =
+        MutableLiveData(SortEnum.RELEVANCE)
     private var currentPage: Int = 1
-    private val userDataBaseRepositoryImpl = UserDataBaseRepositoryImpl()
-    private val saveRequestUseCase = SaveRequestUseCase(userDataBaseRepositoryImpl)
-    private val flickrApiRepositoryImpl = FlickrApiRepositoryImpl()
-    private val searchPhotoUseCase = SearchPhotoUseCase(flickrApiRepositoryImpl)
+    private val saveRequestUseCase: SaveRequestUseCase = get(SaveRequestUseCase::class.java)
+    private val searchPhotoUseCase: SearchPhotoUseCase = get(SearchPhotoUseCase::class.java)
 
     fun getPhotosLiveData(): LiveData<List<PhotoModel>> {
         if (photosLiveData == null) {
@@ -43,7 +40,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         return photosLiveData!!
     }
 
-    fun getSearchStateLiveDate(): LiveData<SearchState>{
+    fun getSearchStateLiveDate(): LiveData<SearchState> {
         return searchStateLiveData
     }
 
@@ -55,7 +52,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         return responseCodeLiveData
     }
 
-    fun getSortPositionObserver():LiveData<SortEnum>{
+    fun getSortPositionObserver(): LiveData<SortEnum> {
         return sortPositionLiveData
     }
 
@@ -74,7 +71,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun loadMore() {
-        if(searchStateLiveData.value!! == SearchState.READY) {
+        if (searchStateLiveData.value!! == SearchState.READY) {
             searchStateLiveData.postValue(SearchState.LOADING_MORE)
             currentPage++
             requestStringLiveData.value.let { it1 ->
@@ -88,7 +85,11 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private fun newSearchPhotos(page: Int = 1, requestText: String, sort: SortEnum = SortEnum.RELEVANCE){
+    private fun newSearchPhotos(
+        page: Int = 1,
+        requestText: String,
+        sort: SortEnum = SortEnum.RELEVANCE
+    ) {
         viewModelScope.launch {
             val result = searchPhotoUseCase.execute(
                 page,
