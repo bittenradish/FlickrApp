@@ -1,6 +1,7 @@
 package de.example.challenge.flickrapp.di
 
 import de.example.challenge.flickrapp.fragments.childFragments.HistoryViewModel
+import de.example.challenge.flickrapp.fragments.childFragments.search.SearchViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -9,7 +10,7 @@ val appModule = module {
         HistoryViewModel(parameters.get(), get(), get(), get())
     }
 
-//    viewModel<SearchViewModel>{ parameters ->
-//        SearchViewModel(parameters.get())
-//    }
+    viewModel<SearchViewModel>{ parameters ->
+        SearchViewModel(parameters.get(), get(), get())
+    }
 }

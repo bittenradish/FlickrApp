@@ -10,7 +10,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
@@ -18,13 +17,18 @@ import de.example.challenge.flickrapp.adapters.recycler.AdapterItem
 import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
 import de.example.challenge.flickrapp.adapters.recycler.OnPhotoItemListener
 import de.example.challenge.flickrapp.adapters.spinner.SpinnerAdapter
+import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.data.repository.flickrapi.ResponseCode
 import de.example.challenge.flickrapp.data.repository.flickrapi.models.SortEnum
 import de.example.challenge.flickrapp.dialogs.ShowDialogs
+import org.koin.androidx.viewmodel.ext.android.getViewModel
+import org.koin.core.parameter.parametersOf
 
 class SearchingFragment : Fragment() {
 
-    private lateinit var searchViewModel: SearchViewModel
+    private val searchViewModel: SearchViewModel by lazy {
+        requireParentFragment().getViewModel { parametersOf(App.getAppInstance()) }
+    }
     private var alertDialog: AlertDialog? = null
     private lateinit var progressBar: ProgressBar
     private lateinit var searchButton: ImageButton
@@ -38,8 +42,6 @@ class SearchingFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_searching, container, false)
-        searchViewModel =
-            ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
         progressBar = view.findViewById(R.id.progressBar)
         searchEditText = view.findViewById(R.id.searchEditText)
         searchButton = view.findViewById(R.id.searchButton)
@@ -120,7 +122,7 @@ class SearchingFragment : Fragment() {
         searchViewModel.observerGotTheMessage()
     }
 
-    private fun startSearchAction(withMessage:Boolean = true) {
+    private fun startSearchAction(withMessage: Boolean = true) {
         if (!searchEditText.text.isEmpty()) {
             searchViewModel.searchFor(
                 searchEditText.text.toString(),
@@ -128,7 +130,7 @@ class SearchingFragment : Fragment() {
             )
             searchEditText.clearFocus()
         } else {
-            if(withMessage) {
+            if (withMessage) {
                 Toast.makeText(context, "Search field is empty", Toast.LENGTH_SHORT).show()
             }
         }
@@ -147,7 +149,7 @@ class SearchingFragment : Fragment() {
         searchViewModel.getSortPositionObserver().observe(viewLifecycleOwner) {
             sortAdapter.selectedPosition = when (it) {
                 SortEnum.RELEVANCE -> 0
-                SortEnum.INTERESTINGNESS_DESC ->1
+                SortEnum.INTERESTINGNESS_DESC -> 1
                 SortEnum.INTERESTINGNESS_ASC -> 1
                 SortEnum.DATE_TAKEN_DESC -> 2
                 SortEnum.DATE_TAKEN_ASC -> 2
@@ -186,7 +188,7 @@ class SearchingFragment : Fragment() {
         sortOrderCheckBox.setOnClickListener { startSearchAction(false) }
     }
 
-    private fun refreshUiEnable(state: SearchState){
+    private fun refreshUiEnable(state: SearchState) {
         if (state == SearchState.SEARCHING) {
             progressBar.visibility = View.VISIBLE
             searchButton.isEnabled = false

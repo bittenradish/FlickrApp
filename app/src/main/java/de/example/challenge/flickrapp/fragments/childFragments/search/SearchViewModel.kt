@@ -16,10 +16,14 @@ import de.example.challenge.flickrapp.data.repository.flickrapi.models.SortEnum
 import de.example.challenge.flickrapp.domain.usecases.SaveRequestUseCase
 import de.example.challenge.flickrapp.domain.usecases.SearchPhotoUseCase
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.get
 
 
-class SearchViewModel(application: Application) : AndroidViewModel(application) {
+class SearchViewModel(
+    application: Application,
+    private val saveRequestUseCase: SaveRequestUseCase,
+    private val searchPhotoUseCase: SearchPhotoUseCase
+) : AndroidViewModel(application) {
+
     private var photosLiveData: MutableLiveData<List<PhotoModel>>? = null
     private var searchStateLiveData: MutableLiveData<SearchState> =
         MutableLiveData(SearchState.READY)
@@ -29,8 +33,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private var sortPositionLiveData: MutableLiveData<SortEnum> =
         MutableLiveData(SortEnum.RELEVANCE)
     private var currentPage: Int = 1
-    private val saveRequestUseCase: SaveRequestUseCase = get(SaveRequestUseCase::class.java)
-    private val searchPhotoUseCase: SearchPhotoUseCase = get(SearchPhotoUseCase::class.java)
 
     fun getPhotosLiveData(): LiveData<List<PhotoModel>> {
         if (photosLiveData == null) {

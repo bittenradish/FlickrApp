@@ -6,13 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.ViewModelProvider
 import de.example.challenge.flickrapp.R
+import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.fragments.childFragments.HistoryFragment
 import de.example.challenge.flickrapp.fragments.childFragments.search.SearchState
 import de.example.challenge.flickrapp.fragments.childFragments.search.SearchViewModel
 import de.example.challenge.flickrapp.fragments.childFragments.search.SearchingFragment
 import de.example.challenge.flickrapp.ui.SelectableButton
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 
 class FlowFragment : Fragment(), IOnBackPressed {
     private lateinit var fragmentOnTheScreen: ChildFragment
@@ -21,7 +23,7 @@ class FlowFragment : Fragment(), IOnBackPressed {
     private val savedSearchingFragmentKey: String = "savedSearchFragment"
     private lateinit var historyFragment: HistoryFragment
     private lateinit var searchingFragment: SearchingFragment
-    private lateinit var searchViewModel: SearchViewModel
+    private val searchViewModel: SearchViewModel by viewModel<SearchViewModel> { parametersOf(App.getAppInstance()) }
     private lateinit var historyButton: SelectableButton
     private lateinit var searchButton: SelectableButton
 
@@ -33,8 +35,7 @@ class FlowFragment : Fragment(), IOnBackPressed {
         searchButton = view.findViewById(R.id.searchButton)
         historyButton = view.findViewById(R.id.historyButton)
 
-        searchViewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-        searchViewModel.getSearchStateLiveDate().observe(viewLifecycleOwner){
+        searchViewModel.getSearchStateLiveDate().observe(viewLifecycleOwner) {
             if (it == SearchState.SEARCHING) {
                 replaceSearchingFragment()
             }

@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import de.example.challenge.flickrapp.R
@@ -19,6 +18,7 @@ import de.example.challenge.flickrapp.adapters.recycler.DataAdapter
 import de.example.challenge.flickrapp.adapters.recycler.OnHistoryItemListener
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.fragments.childFragments.search.SearchViewModel
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
@@ -26,15 +26,15 @@ import kotlin.math.roundToInt
 class HistoryFragment : Fragment() {
 
     private val historyViewModel: HistoryViewModel by viewModel<HistoryViewModel> { parametersOf(App.getAppInstance()) }
-    private lateinit var searchViewModel: SearchViewModel
+    private val searchViewModel: SearchViewModel by lazy {
+        requireParentFragment().getViewModel { parametersOf(App.getAppInstance()) }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_history, container, false)
-//        historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
-        searchViewModel =
-            ViewModelProvider(requireParentFragment()).get(SearchViewModel::class.java)
         val historyAdapter: DataAdapter =
             DataAdapter(listOf<AdapterItem>(), object : OnHistoryItemListener {
                 override fun onItemClicked(requestText: String) {
