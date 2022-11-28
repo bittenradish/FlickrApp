@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.get
 import de.example.challenge.flickrapp.R
 import de.example.challenge.flickrapp.application.App
 import de.example.challenge.flickrapp.fragments.childFragments.HistoryFragment
@@ -15,6 +17,7 @@ import de.example.challenge.flickrapp.fragments.childFragments.search.SearchingF
 import de.example.challenge.flickrapp.ui.SelectableButton
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import javax.inject.Inject
 
 class FlowFragment : Fragment(), IOnBackPressed {
     private lateinit var fragmentOnTheScreen: ChildFragment
@@ -23,7 +26,10 @@ class FlowFragment : Fragment(), IOnBackPressed {
     private val savedSearchingFragmentKey: String = "savedSearchFragment"
     private lateinit var historyFragment: HistoryFragment
     private lateinit var searchingFragment: SearchingFragment
-    private val searchViewModel: SearchViewModel by viewModel<SearchViewModel> { parametersOf(App.getAppInstance()) }
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private lateinit var searchViewModel: SearchViewModel
     private lateinit var historyButton: SelectableButton
     private lateinit var searchButton: SelectableButton
 
@@ -32,9 +38,11 @@ class FlowFragment : Fragment(), IOnBackPressed {
         savedInstanceState: Bundle?
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_flow, container, false)
+        App.getAppInstance().appComponent.inject(this)
+        searchViewModel = ViewModelProvider(this, viewModelFactory)
+            .get(SearchViewModel::class.java)
         searchButton = view.findViewById(R.id.searchButton)
         historyButton = view.findViewById(R.id.historyButton)
-
         searchViewModel.getSearchStateLiveDate().observe(viewLifecycleOwner) {
             if (it == SearchState.SEARCHING) {
                 replaceSearchingFragment()
